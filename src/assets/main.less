@@ -1,0 +1,89 @@
+@import './base.less';
+@import './normalize.less';
+
+#dark-separator() {
+  color: #dark()[sub];
+}
+#separator() {
+  width: 100%;
+  height: 30px;
+  weight: 2px;
+  radius: #border-radius()[large-x];
+}
+
+body {
+  background-color: #dark-main()[bg-color];
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+p {
+  color: #dark-text()[color];
+}
+
+hr {
+  pointer-events: none;
+  width: #separator()[width];
+  height: #separator()[height];
+  border: #dark-separator()[color] solid;
+  border-width: #separator()[weight] 0 0 0;
+  border-radius: #separator()[radius];
+
+  &::before {
+    content: "";
+    pointer-events: none;
+    display: block;
+    height: 100%;
+    margin-top: 0 - #separator()[height] - #separator()[weight];
+    border: #dark-separator()[color] solid;
+    border-width: 0 0 #separator()[weight] 0;
+    border-radius: #separator()[radius];
+  }
+}
+
+* {
+  &::-webkit-scrollbar {
+    height: #scrollbar()[size];
+    width: #scrollbar()[size];
+  }
+  &::-webkit-scrollbar-track {
+    border-radius: #scrollbar()[thumb-border-radius];
+
+    &:horizontal {
+      background: #dark-scrollbar()[track-h-color];
+    }
+    &:vertical {
+      background: #dark-scrollbar()[track-v-color];
+    }
+  }
+  &::-webkit-scrollbar-thumb {
+    border-radius: #scrollbar()[thumb-border-radius];
+
+    &:horizontal {
+      background: #dark-scrollbar()[thumb-h-color];
+
+      &:hover {
+        background: #dark-scrollbar()[thumb-hovering-h-color];
+      }
+    }
+    &:vertical {
+      background: #dark-scrollbar()[thumb-v-color];
+
+      &:hover {
+        background: #dark-scrollbar()[thumb-hovering-v-color];
+      }
+    }
+  }
+  &::-webkit-scrollbar-button {
+    display: none;
+  }
+  &::-webkit-scrollbar-corner {
+    background-color: transparent;
+  }
+}
+
+.shadow {
+  box-shadow: 0 0 #shadow()[level-1] #dark-shadow()[color],
+  0 0 #shadow()[level-2] #dark-shadow()[color],
+  0 0 #shadow()[level-3] #dark-shadow()[color],
+  0 0 #shadow()[level-4] #dark-shadow()[color],;
+}

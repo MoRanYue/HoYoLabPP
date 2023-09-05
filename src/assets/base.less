@@ -1,0 +1,64 @@
+@import url("https://cdn.staticfile.org/lxgw-wenkai-webfont/1.6.0/style.css");
+
+#color() {
+  white: #ffefff;
+  silver: #c3c4c5;
+  black: #111;
+  red: #fa0101;
+  blue: #1003ee;
+  deepblue: #0000b3;
+  grey: #807980;
+}
+
+#border-radius() {
+  none: 0;
+  tiny: 2px;
+  small: 4px;
+  medium: 6px;
+  large: 9px;
+  large-x: 11px;
+  large-xx: 15px;
+  large-xxx: 24px;
+  circle: 50%;
+}
+
+#dark() {
+  primary: lighten(#color()[black], 10%);
+  secondary: lighten(#color()[black], 13%);
+  content: darken(#color()[white], 2%);
+  sub: darken(#color()[white], 5%);
+  special: lighten(#color()[blue], 15%);
+}
+#dark-text() {
+  color: #dark()[content];
+  important: lighten(#dark()[special], 10%);
+  disabled: darken(#color()[grey], 4%);
+}
+#dark-main() {
+  bg-color: #dark[primary];
+}
+
+#dark-scrollbar() {
+  thumb-h-color: lighten(#dark()[secondary], 5%);
+  thumb-v-color: lighten(#dark()[secondary], 8%);
+  track-h-color: lighten(#dark()[primary], 1%);
+  track-v-color: lighten(#dark()[primary], 4%);
+  
+  thumb-hovering-h-color: lighten(#dark()[secondary], 10%);
+  thumb-hovering-v-color: lighten(#dark()[secondary], 13%);
+}
+#scrollbar() {
+  size: 0.5em;
+  thumb-border-radius: #border-radius()[medium];
+}
+
+#dark-shadow {
+  color: fadeout(#color()[silver], 40%);
+}
+#shadow() {
+  level-1: 5px;
+  level-2: 10px;
+  level-3: 30px;
+  level-4: 40px;
+  base-spread-range: 8px;
+}
