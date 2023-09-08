@@ -40,7 +40,19 @@ export function randomRgb(alpha: boolean = false) {
 export function randomChar(length: number, collection: string = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789') {
   let str: string = ''
   for (let i = 0; i < length; i++) {
-    str += collection[randomMinZero(collection.length)]
+    str += collection[randomMinZero(collection.length - 1)]
+  }
+  return str
+}
+
+export function randomUuid4() {
+  let str: string = ''
+  for (let i = 0; i < 4; i++) {
+    str += randomChar(4, '0123456789abcdef')
+
+    if (i < 3) {
+      str += '-'
+    }
   }
   return str
 }
@@ -75,6 +87,20 @@ export function dictToCookie(cookies: Dict): string {
   }
 
   return cookie
+}
+
+export function cookieToDict(cookies: string) {
+  const dict: Dict = {}
+
+  cookies.split(/; */).forEach(cookie => {
+    const [k, v] = cookie.split('=', 2)
+
+    if (!['path', 'httponly', 'max-age', 'domain', 'secure'].includes(k.toLowerCase())) {
+      dict[k] = v
+    }
+  })
+
+  return dict
 }
 
 export function formatTime(time: Date, addtionalZeros: boolean = true, removeMs: boolean = true): string {

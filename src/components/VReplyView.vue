@@ -92,7 +92,7 @@ function toTop() {
     </div>
 
     <div class="content" ref="contentElement">
-      <v-reply-item :sender="props.sender" :stats="props.stats" :status="props.status" :reply-id="props.replyId" :time="props.time" :content="props.content"></v-reply-item>
+      <v-reply-item :post-id="props.postId" :sender="props.sender" :stats="props.stats" :status="props.status" :reply-id="props.replyId" :time="props.time" :content="props.content"></v-reply-item>
 
       <hr>
 
@@ -102,7 +102,7 @@ function toTop() {
             :time="{creating: reply.reply.created_at, updating: reply.reply.updated_at}" 
             :sender="{nickname: reply.user.nickname, userId: reply.user.uid, avatar: reply.user.avatar_url}" 
             :content="reply.reply.struct_content" :reply-id="reply.reply.reply_id" 
-            :stats="{like: reply.stat.like_num, dislike: reply.stat.dislike_num}"
+            :stats="{like: reply.stat.like_num, dislike: reply.stat.dislike_num}" :post-id="props.postId"
             :status="{liked: reply.self_operation.reply_vote_attitude == 1, disliked: reply.self_operation.reply_vote_attitude == 2}"
             :reply-to-user="(reply.r_user && reply.r_user.uid != props.sender.userId) ? {nickname: reply.r_user.nickname, avatar: reply.r_user.avatar_url, userId: reply.r_user.uid} : undefined"></v-reply-item>
         </li>

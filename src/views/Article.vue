@@ -9,14 +9,17 @@ import VArticleView from '@/components/VArticleView.vue';
 import VArticleItem from '@/components/VArticleItem.vue';
 import VIcon from '@/components/VIcon.vue';
 import VTextInput from '@/components/VTextInput.vue'
+import { useUserStore } from '@/stores/user'
 import type { Dict } from '@/constants/TDict';
 import type { NumberId } from '@/constants/Api';
 import type { UserAnchorInfo } from '@/constants/IUserAnchorInfo';
 
+const user = useUserStore()
+
 const route = useRoute()
 
 let page: number = 1
-const { isLoading: homeIsLoading, isReady: homeIsReady, state: homeState } = useAsyncState(homeInfo(2, page), undefined)
+const { isLoading: homeIsLoading, isReady: homeIsReady, state: homeState, error: homeError } = useAsyncState(homeInfo(2, page, 20), undefined)
 
 const articleEnd = ref<HTMLElement>()
 const isTimeToRefresh = useElementVisibility(articleEnd)
@@ -27,7 +30,7 @@ async function refreshArticle(append: boolean = false) {
     page++
   }
 
-  const res = await homeInfo(2, page)
+  const res = await homeInfo(2, page, 20)
 
   res.data.recommended_posts.forEach(article => {
     recommendedPosts.value.push(article)
@@ -37,6 +40,9 @@ watch(isTimeToRefresh, (needRefresh) => {
   if (needRefresh) {
     refreshArticle(true)
   }
+})
+watch(homeError, (err) => {
+  console.error(err)
 })
 watch(homeState, (state) => {
   recommendedPosts.value = state.data.recommended_posts
@@ -114,7 +120,7 @@ const currentArticle: Ref<{
   }
 })
 async function viewPost(postId: string) {
-  const postInfo = await articleInfo(postId)
+  const postInfo = await articleInfo(postId, user.stoken.v2, user.accountId, user.mihoyoId)
 
   // 暂时先这样
   if (postInfo.retcode != 0) {
@@ -145,9 +151,10 @@ async function viewPost(postId: string) {
     view: post.stat.view_num
   }
   currentArticle.value.status = {
-    liked: post.self_operation != 0,
+    liked: post.self_operation.attitude == 1,
     collected: post.self_operation.is_collected
   }
+  console.log(currentArticle.value.status)
 }
 
 if (route.params.postId) {

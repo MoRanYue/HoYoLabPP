@@ -4,11 +4,14 @@ import { useAsyncState, watchOnce, toValue } from '@vueuse/core';
 import { useMotion } from '@vueuse/motion';
 import { processStructContent } from '@/utils/articleStructContentProcessor';
 import { formatTime } from '@/utils/utils'
+import { upvoteReply, downvoteReply } from '@/api/interfaces';
 import VIcon from './VIcon.vue'
 import VUserAnchor from './VUserAnchor.vue';
 import VButton from './VButton.vue';
+import { useUserStore } from '@/stores/user'
 import type { UserAnchorInfo } from '@/constants/IUserAnchorInfo';
 import type { Dict } from '@/constants/TDict';
+import type { NumberId } from '@/constants/Api';
 
 const props = withDefaults(defineProps<{
   sender: UserAnchorInfo
@@ -22,7 +25,8 @@ const props = withDefaults(defineProps<{
     disliked: boolean
     liked: boolean
   }
-  replyId: number| string
+  postId: NumberId
+  replyId: NumberId
   floor?: number
   time: {
     creating: number
@@ -34,13 +38,48 @@ const props = withDefaults(defineProps<{
 })
 const emits = defineEmits(['seeSubReply'])
 
+const user = useUserStore()
+
 let content = ref('处理中')
+let status: Ref<{
+  disliked: boolean
+  liked: boolean
+}> = ref({
+  disliked: false,
+  liked: false
+})
 async function refreshInfo() {
   content.value = await processStructContent(props.content)
+  status.value = {...props.status}
 }
 
 watch(props, refreshInfo)
 onMounted(refreshInfo)
+
+async function vote(downvote: boolean = false) {
+  if (downvote) {
+    const voteInfo = await downvoteReply(props.postId, props.replyId, toValue(status).disliked, user.stoken.v2, user.accountId, user.mihoyoId)
+    if (voteInfo.retcode != 0) {
+      return
+    }
+
+    if (toValue(status).liked) {
+      status.value.liked = false
+    }
+    status.value.disliked = !toValue(status).disliked
+  }
+  else {
+    const voteInfo = await upvoteReply(props.postId, props.replyId, toValue(status).liked, user.stoken.v2, user.accountId, user.mihoyoId)
+    if (voteInfo.retcode != 0) {
+      return
+    }
+
+    if (toValue(status).disliked) {
+      status.value.disliked = false
+    }
+    status.value.liked = !toValue(status).liked
+  }
+}
 
 </script>
 
@@ -73,7 +112,7 @@ onMounted(refreshInfo)
             <v-reply-item
             :time="{creating: reply.reply.created_at, updating: reply.reply.updated_at}" 
             :sender="{nickname: reply.user.nickname, userId: reply.user.uid, avatar: reply.user.avatar_url}" 
-            :content="reply.reply.struct_content" :reply-id="reply.reply.reply_id" 
+            :content="reply.reply.struct_content" :reply-id="reply.reply.reply_id" :post-id="props.postId" 
             :stats="{like: reply.stat.like_num, dislike: reply.stat.dislike_num, subReply: reply.stat.sub_num}"
             :status="{liked: reply.self_operation.reply_vote_attitude == 1, disliked: reply.self_operation.reply_vote_attitude == 2}"
             :reply-to-user="(reply.r_user && reply.r_user.uid != props.sender.userId) ? {nickname: reply.r_user.nickname, avatar: reply.r_user.avatar_url, userId: reply.r_user.uid} : undefined"></v-reply-item>
@@ -91,8 +130,8 @@ onMounted(refreshInfo)
         </div>
 
         <div class="operation">
-          <v-button class="like" title="点赞" icon="like" type="icon" :icon-theme="props.status.liked ? 'filled' : 'outline'" :icon-width="3"></v-button>
-          <v-button class="dislike" title="点踩" icon="dislike-two" type="icon" :icon-theme="props.status.disliked ? 'two-tone' : 'outline'" :icon-width="3"></v-button>
+          <v-button class="like" @click="vote(false)" title="点赞" icon="like" type="icon" :icon-theme="status.liked ? 'filled' : 'outline'" :icon-width="3"></v-button>
+          <v-button class="dislike" @click="vote(true)" title="点踩" icon="dislike-two" type="icon" :icon-theme="status.disliked ? 'two-tone' : 'outline'" :icon-width="3"></v-button>
 
           <v-button class="post-reply" title="回复" type="icon" icon-theme="outline" icon="comment"></v-button>
         </div>

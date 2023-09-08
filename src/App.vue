@@ -2,11 +2,15 @@
 import { RouterLink, RouterView } from 'vue-router'
 import VAsideNavigation from './components/VAsideNavigation.vue';
 import VButton from './components/VButton.vue';
+import VNotification from './components/VNotification.vue';
+import { notify } from './utils/notification'
 import type { NavigationItem } from './constants/INavigationItem';
-import { ref, getCurrentInstance } from 'vue';
+import { ref, getCurrentInstance, onMounted } from 'vue';
 import { toValue } from '@vueuse/core';
 
 const inst = getCurrentInstance()
+
+// const user = useUserStore()
 
 const metaData: {
   siteName: string
@@ -45,7 +49,7 @@ function toggleNavigation() {
 
 <template>
   <header>
-    
+    <v-notification></v-notification>
   </header>
 
   <aside>
@@ -78,6 +82,11 @@ function toggleNavigation() {
 
 * {
   color: #dark-text[color];
+}
+
+.notification {
+  z-index: 999;
+  position: fixed;
 }
 
 .navigation-control {

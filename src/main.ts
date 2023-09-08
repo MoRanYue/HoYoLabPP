@@ -5,6 +5,7 @@ import { MotionPlugin } from '@vueuse/motion'
 
 import App from './App.vue'
 import router from './router'
+import { notify } from './utils/notification'
 
 import '@/api/resources'
 import 'normalize.css'

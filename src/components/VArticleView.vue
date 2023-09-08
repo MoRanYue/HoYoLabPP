@@ -2,7 +2,8 @@
 import { ref, watch, getCurrentInstance, type Ref } from 'vue';
 import { useAsyncState, useScroll, useElementVisibility, toValue, type MaybeRef, watchOnce } from '@vueuse/core'
 import { processStructContent } from '@/utils/articleStructContentProcessor';
-import { type ReplyOrderType, postReplyInfo, subReplyInfo, replyInfo } from '@/api/interfaces'
+import { type ReplyOrderType, postReplyInfo, subReplyInfo, replyInfo, upvotePost, collectPost } from '@/api/interfaces'
+import { useUserStore } from '@/stores/user';
 import VIcon from './VIcon.vue';
 import VButton from './VButton.vue';
 import VUserAnchor from './VUserAnchor.vue';
@@ -48,12 +49,22 @@ const props = withDefaults(defineProps<{
 const emits = defineEmits(['close'])
 const inst = getCurrentInstance()
 
+const user = useUserStore()
+
 const article = ref<HTMLElement>()
 const contentElement = ref<HTMLElement>()
+const articleContent = ref<HTMLElement>()
 const replyTitle = ref<HTMLElement>()
 const replyEnd = ref<HTMLElement>()
 
 let content = ref('')
+let status: Ref<{
+  liked: boolean
+  collected: boolean
+}> = ref({
+  liked: false,
+  collected: false
+})
 let replies = ref({
   pinnedReplyId: 0,
   replies: []
@@ -114,7 +125,7 @@ watch(props, async () => {
   if (typeof props.content == 'undefined') {
     return
   }
-
+  
   toTop()
 
   const contentSource: StructContent[] = JSON.parse(props.content || '[]')
@@ -125,6 +136,7 @@ watch(props, async () => {
   }
 
   content.value = await processStructContent(contentSource)
+  status.value = {...props.status}
   replies = ref({
     pinnedReplyId: 0,
     replies: []
@@ -233,6 +245,37 @@ async function viewReply(floor: number, parentReplyId: number | string) {
   }
 }
 
+function closeView() {
+  if (articleContent.value) {
+    for (let i = 0; i < articleContent.value.children.length; i++) {
+      const child = articleContent.value.children[i];
+      
+      if (child.classList.contains('hoyolab-video')) {
+        (<HTMLVideoElement>child.firstChild!!).pause()
+      }
+    }
+  }
+
+  emits('close')
+}
+
+async function upvote() {
+  const upvoteInfo = await upvotePost(props.postId, toValue(status).liked, user.stoken.v2, user.accountId, user.mihoyoId)
+  if (upvoteInfo.retcode != 0) {
+    return
+  }
+
+  status.value.liked = !toValue(status).liked
+}
+async function collect() {
+  const collectInfo = await collectPost(props.postId, toValue(status).collected, user.stoken.v2, user.accountId, user.mihoyoId)
+  if (collectInfo.retcode != 0) {
+    return
+  }
+
+  status.value.collected = !toValue(status).collected
+}
+
 </script>
 
 <template>
@@ -245,10 +288,10 @@ async function viewReply(floor: number, parentReplyId: number | string) {
 
   <section class="article-view" ref="article">
     <div class="operation">
-      <v-button class="close" title="关闭" icon="close" type="icon" :icon-width="3" @click="$emit('close')"></v-button>
+      <v-button class="close" title="关闭" icon="close" type="icon" :icon-width="3" @click="closeView"></v-button>
       <div class="article-operation">
-        <v-button class="like" title="点赞" icon="like" type="icon" :icon-theme="props.status.liked ? 'filled' : 'outline'" :icon-width="3"></v-button>
-        <v-button class="collect" title="收藏" icon="bookmark" type="icon" :icon-theme="props.status.collected ? 'filled' : 'outline'" :icon-width="3"></v-button>
+        <v-button class="like" @click="upvote" title="点赞" icon="like" type="icon" :icon-theme="status.liked ? 'filled' : 'outline'" :icon-width="3"></v-button>
+        <v-button class="collect" @click="collect" title="收藏" icon="bookmark" type="icon" :icon-theme="status.collected ? 'filled' : 'outline'" :icon-width="3"></v-button>
         <v-button class="forward" title="转发（仅用于完成米游币任务）" icon="share-two" type="icon" :icon-width="3"></v-button>
       </div>
       <div class="page-operation">
@@ -281,7 +324,7 @@ async function viewReply(floor: number, parentReplyId: number | string) {
     <hr>
 
     <div class="post-content" ref="contentElement">
-      <div class="content" v-html="content">
+      <div class="content" v-html="content" ref="articleContent">
       </div>
 
       <hr>
@@ -300,9 +343,10 @@ async function viewReply(floor: number, parentReplyId: number | string) {
           <li v-for="reply in replies.replies" :key="reply.reply.reply_id">
             <v-reply-item 
             :time="{creating: reply.reply.created_at, updating: reply.reply.updated_at}" :floor="reply.reply.floor_id" 
+            :post-id="reply.reply.post_id" 
             :sender="{nickname: reply.user.nickname, userId: reply.user.uid, avatar: reply.user.avatar_url}" 
             :content="reply.reply.struct_content" :reply-id="reply.reply.reply_id" :sub-reply="reply.sub_replies" 
-            :stats="{like: reply.stat.like_num, dislike: reply.stat.dislike_num, subReply: reply.stat.sub_num}"
+            :stats="{like: reply.stat.like_num, dislike: reply.stat.dislike_num, subReply: reply.stat.sub_num}" 
             :status="{liked: reply.self_operation.reply_vote_attitude == 1, disliked: reply.self_operation.reply_vote_attitude == 2}" 
             @see-sub-reply="viewReply"></v-reply-item>
           </li>

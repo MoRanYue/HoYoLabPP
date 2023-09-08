@@ -45,7 +45,7 @@ async function update(): Promise<void> {
     render(createVNode(IconParkMap[type], props), icon.value!)
   }
 }
-watch(() => props, update, { flush: 'post' })
+watch(props, update, { flush: 'post' })
 onMounted(update)
 
 
