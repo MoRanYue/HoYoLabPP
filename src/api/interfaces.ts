@@ -1,8 +1,8 @@
 import type { Dict } from "@/constants/TDict";
 import { requestMihoyo } from "./dynamicSignProcessor";
 import jsEncrypt from 'jsencrypt'
-import type { NumberId } from "@/constants/Api";
-import { randomChar, randomMinZero, randomRange, randomUuid4 } from "@/utils/utils";
+import type { InterfaceType, NumberId } from "@/constants/Api";
+import { getNowTime, randomChar, randomMinZero, randomRange, randomUuid4 } from "@/utils/utils";
 
 const appId = {
   hoyolabCn: 'bll8iq97cem8'
@@ -21,6 +21,77 @@ CgGs52bFoYMtyi+xEQIDAQAB
   return encrypt.encrypt(value)
 }
 
+function isTokenV2(token: string) {
+  return token.startsWith('v2')
+}
+
+async function constructLtoken(ltoken?: string, accountId?: NumberId, mihoyoId?: string) {
+  if (!ltoken) {
+    return {}
+  }
+
+  const cookies: Partial<{
+    ltoken: string
+    ltuid: string
+    ltoken_v2: string
+    ltmid: string
+    ltmid_v2: string
+  }> = {}
+  if (isTokenV2(ltoken)) {
+    cookies.ltoken_v2 = ltoken
+    cookies.ltmid_v2 = mihoyoId
+  }
+  else {
+    cookies.ltoken = ltoken
+    cookies.ltmid = mihoyoId
+  }
+  if (accountId) {
+    cookies.ltuid = String(accountId)
+  }
+
+  return cookies
+}
+async function constructStoken(stoken?: string, accountId?: NumberId, mihoyoId?: string) {
+  if (!stoken) {
+    return {}
+  }
+
+  const cookies: Partial<{
+    stoken: string
+    stuid: string
+    mid: string
+  }> = {}
+  cookies.stoken = stoken
+  if (mihoyoId) {
+    cookies.mid = mihoyoId
+  }
+  if (accountId) {
+    cookies.stuid = String(accountId)
+  }
+
+  return cookies
+}
+async function setupData(type: InterfaceType, appUrl: string, webUrl: string, token?: string, accountId?: NumberId, mihoyoId?: string) {
+  const data: {
+    url: string
+    cookies: Dict
+  } = {
+    url: '',
+    cookies: {}
+  }
+  
+  if (type == 'web') {
+    data.url = webUrl
+    data.cookies = await constructLtoken(token, accountId, mihoyoId)
+  }
+  else if (type == 'application') {
+    data.url = appUrl
+    data.cookies = await constructStoken(token, accountId, mihoyoId)
+  }
+
+  return data
+}
+
 export enum ReplyOrderType {
   heat,
   newest,
@@ -28,17 +99,11 @@ export enum ReplyOrderType {
   poster
 }
 
-export async function articleInfo(id: NumberId, stoken?: string, accountId?: NumberId, mihoyoId?: string) {
-  const cookies: Dict = {}
-  if (stoken && (accountId || mihoyoId)) {
-    cookies.stoken = stoken
-    cookies.stuid = accountId
-    cookies.mid = mihoyoId
-  }
-
-  return await requestMihoyo('get', 'https://bbs-api.miyoushe.com/post/api/getPostFull', undefined, undefined, undefined, {
+export async function articleInfo(id: NumberId, type: InterfaceType, token?: string, accountId?: NumberId, mihoyoId?: string) {
+  const data = await setupData(type, 'https://bbs-api.miyoushe.com/post/api/getPostFull', 'https://bbs-api.miyoushe.com/post/wapi/getPostFull', token, accountId, mihoyoId)
+  return await requestMihoyo('get', data.url, undefined, undefined, undefined, {
     post_id: id,
-  }, undefined, undefined, cookies)
+  }, undefined, undefined, data.cookies)
 }
 export async function homeInfo(gameId: number, page: number = 1, pageCount: number = 20) {
   return await requestMihoyo('get', 'https://bbs-api-static.miyoushe.com/apihub/wapi/webHome', undefined, undefined, undefined, {
@@ -52,7 +117,7 @@ export async function dynamicData(postIds: NumberId[]) {
     post_ids: postIds.join(','),
   })
 }
-export async function postReplyInfo(postId: NumberId, orderType: keyof typeof ReplyOrderType, count: number = 20, lastReplyCount?: number, stoken?: string, accountId?: NumberId, mihoyoId?: string) {
+export async function postReplyInfo(postId: NumberId, orderType: keyof typeof ReplyOrderType, count: number = 20, lastReplyCount: number | undefined, type: InterfaceType, token?: string, accountId?: NumberId, mihoyoId?: string) {
   const params: Dict = {
     post_id: postId,
     size: count,
@@ -74,32 +139,20 @@ export async function postReplyInfo(postId: NumberId, orderType: keyof typeof Re
     params.last_id = lastReplyCount
   }
 
-  const cookies: Dict = {}
-  if (stoken && (accountId || mihoyoId)) {
-    cookies.stoken = stoken
-    cookies.stuid = accountId
-    cookies.mid = mihoyoId
-  }
-
-  return await requestMihoyo('get', 'https://bbs-api.miyoushe.com/post/api/getPostReplies', undefined, undefined, undefined, params, undefined, undefined, cookies)
+  const data = await setupData(type, 'https://bbs-api.miyoushe.com/post/api/getPostReplies', 'https://bbs-api.miyoushe.com/post/wapi/getPostReplies', token, accountId, mihoyoId)
+  return await requestMihoyo('get', data.url, undefined, undefined, undefined, params, undefined, undefined, data.cookies)
 }
 export async function emotionList() {
   return await requestMihoyo('get', 'https://bbs-api-static.miyoushe.com/misc/api/emoticon_set')
 }
-export async function replyInfo(postId: NumberId, replyId: NumberId, stoken?: string, accountId?: NumberId, mihoyoId?: string) {
-  const cookies: Dict = {}
-  if (stoken && (accountId || mihoyoId)) {
-    cookies.stoken = stoken
-    cookies.mid = mihoyoId
-    cookies.stuid = accountId
-  }
-
-  return await requestMihoyo('get', 'https://bbs-api.miyoushe.com/post/wapi/getRootReplyInfo', undefined, undefined, undefined, {
+export async function replyInfo(postId: NumberId, replyId: NumberId, type: InterfaceType, token?: string, accountId?: NumberId, mihoyoId?: string) {
+  const data = await setupData(type, 'https://bbs-api.miyoushe.com/post/api/getRootReplyInfo', 'https://bbs-api.miyoushe.com/post/wapi/getRootReplyInfo', token, accountId, mihoyoId)
+  return await requestMihoyo('get', data.url, undefined, undefined, undefined, {
     post_id: postId,
     reply_id: replyId
-  }, undefined, undefined, cookies)
+  }, undefined, undefined, data.cookies)
 }
-export async function subReplyInfo(postId: NumberId, floor: number, count: number = 20, lastReplyId?: NumberId, stoken?: string, accountId?: NumberId, mihoyoId?: string) {
+export async function subReplyInfo(postId: NumberId, floor: number, count: number = 20, lastReplyId: NumberId | undefined, type: InterfaceType, token?: string, accountId?: NumberId, mihoyoId?: string) {
   const params: Dict = {
     post_id: postId,
     floor_id: floor,
@@ -109,77 +162,53 @@ export async function subReplyInfo(postId: NumberId, floor: number, count: numbe
     params.last_id = lastReplyId
   }
 
-  const cookies: Dict = {}
-  if (stoken && (accountId || mihoyoId)) {
-    cookies.stoken = stoken
-    cookies.mid = mihoyoId
-    cookies.stuid = accountId
-  }
-
-  return await requestMihoyo('get', 'https://bbs-api.miyoushe.com/post/wapi/getSubReplies', undefined, undefined, undefined, params, undefined, undefined, cookies)
+  const data = await setupData(type, 'https://bbs-api.miyoushe.com/post/api/getSubReplies', 'https://bbs-api.miyoushe.com/post/wapi/getSubReplies', token, accountId, mihoyoId)
+  return await requestMihoyo('get', data.url, undefined, undefined, undefined, params, undefined, undefined, data.cookies)
 }
-export async function upvotePost(postId: NumberId, cancel: boolean, stoken: string, accountId?: NumberId, mihoyoId?: string) {
-  return await requestMihoyo('post', 'https://bbs-api.miyoushe.com/post/api/post/upvote', undefined, undefined, undefined, undefined, {
+export async function upvotePost(postId: NumberId, cancel: boolean, type: InterfaceType, token: string, accountId?: NumberId, mihoyoId?: string) {
+  const data = await setupData(type, 'https://bbs-api.miyoushe.com/post/api/post/upvote', 'https://bbs-api.miyoushe.com/post/wapi/post/upvote', token, accountId, mihoyoId)
+  return await requestMihoyo('post', data.url, undefined, undefined, undefined, undefined, {
     is_cancel: cancel,
-    post_id: String(postId),
+    post_id: postId,
     // upvote_type: "1"
-  }, undefined, {
-    stoken,
-    stuid: accountId,
-    mid: mihoyoId
-  })
+  }, undefined, data.cookies)
 }
-export async function collectPost(postId: NumberId, cancel: boolean, stoken: string, accountId?: NumberId, mihoyoId?: string) {
-  return await requestMihoyo('post', 'https://bbs-api.miyoushe.com/post/api/collectPost  ', undefined, undefined, undefined, undefined, {
+export async function collectPost(postId: NumberId, cancel: boolean, type: InterfaceType, token: string, accountId?: NumberId, mihoyoId?: string) {
+  const data = await setupData(type, 'https://bbs-api.miyoushe.com/post/api/collectPost', 'https://bbs-api.miyoushe.com/post/wapi/collectPost', token, accountId, mihoyoId)
+  return await requestMihoyo('post', data.url, undefined, undefined, undefined, undefined, {
     is_cancel: cancel,
     post_id: String(postId),
-  }, undefined, {
-    stoken,
-    stuid: accountId,
-    mid: mihoyoId
-  })
+  }, undefined, data.cookies)
 }
-export async function upvoteReply(postId: NumberId, replyId: NumberId, cancel: boolean, stoken: string, accountId?: NumberId, mihoyoId?: string) {
-  return await requestMihoyo('post', 'https://bbs-api.miyoushe.com/apihub/sapi/upvoteReply', 1, 2, 'k2', undefined, {
+export async function upvoteReply(postId: NumberId, replyId: NumberId, cancel: boolean, type: InterfaceType, token: string, accountId?: NumberId, mihoyoId?: string) {
+  const data = await setupData(type, 'https://bbs-api.miyoushe.com/apihub/sapi/upvoteReply', 'https://bbs-api.miyoushe.com/apihub/api/upvoteReply', token, accountId, mihoyoId)
+  return await requestMihoyo('post', data.url, 1, 2, 'k2', undefined, {
     is_cancel: cancel,
     post_id: String(postId),
     reply_id: String(replyId)
-  }, undefined, {
-    stoken,
-    stuid: accountId,
-    mid: mihoyoId
-  })
+  }, undefined, data.cookies)
 }
-export async function downvoteReply(postId: NumberId, replyId: NumberId, cancel: boolean, stoken: string, accountId?: NumberId, mihoyoId?: string) {
-  return await requestMihoyo('post', 'https://bbs-api.miyoushe.com/apihub/api/downvoteReply', 1, 2, 'k2', undefined, {
+export async function downvoteReply(postId: NumberId, replyId: NumberId, cancel: boolean, type: InterfaceType, token: string, accountId?: NumberId, mihoyoId?: string) {
+  const data = await setupData(type, 'https://bbs-api.miyoushe.com/apihub/api/downvoteReply', 'https://bbs-api.miyoushe.com/apihub/wapi/downvoteReply', token, accountId, mihoyoId)
+  return await requestMihoyo('post', data.url, 1, 2, 'k2', undefined, {
     is_cancel: cancel,
     post_id: String(postId),
     reply_id: String(replyId)
-  }, undefined, {
-    stoken,
-    stuid: accountId,
-    mid: mihoyoId
-  })
+  }, undefined, data.cancel)
 }
-export async function userInfo(userId: NumberId, stoken?: string, accountId?: NumberId, mihoyoId?: string) {
-  const cookies: Dict = {}
-  if (stoken && (accountId || mihoyoId)) {
-    cookies.stoken = stoken
-    cookies.mid = mihoyoId
-    cookies.stuid = accountId
-  }
-
-  return await requestMihoyo('get', 'https://bbs-api.miyoushe.com/user/api/getUserFullInfo', undefined, undefined, undefined, {
+export async function userInfo(userId: NumberId, type: InterfaceType, token?: string, accountId?: NumberId, mihoyoId?: string) {
+  const data = await setupData(type, 'https://bbs-api.miyoushe.com/user/api/getUserFullInfo', 'https://bbs-api.miyoushe.com/user/wapi/getUserFullInfo', token, accountId, mihoyoId)
+  return await requestMihoyo('get', data.url, undefined, undefined, undefined, {
     uid: userId,
     gids: 2
-  }, undefined, undefined, cookies)
+  }, undefined, undefined, data.cookies)
 }
 
 // export async function verifyLtoken(ltoken: string, accountId?: NumberId, mihoyoId?: string) {
   
 // }
 export async function loginMihoyoByPasswordCreateMmt(account: string) {
-  const time = Math.floor(Date.now() / 1000)
+  const time = getNowTime()
 
   return await requestMihoyo('get', 'https://webapi.account.mihoyo.com/Api/create_mmt', undefined, undefined, undefined, {
     scene_type: 1,
@@ -201,7 +230,7 @@ export async function loginMihoyoByPassword(mmtKey: string, account: string, pas
     password: encPwd,
     is_crypto: true,
     source: 'user.mihoyo.com',
-    t: Math.floor(Date.now() / 1000)
+    t: getNowTime()
   }, undefined, {
     Referer: 'https://user.mihoyo.com/',
   })
@@ -323,4 +352,17 @@ export async function getFingerprint() {
   }, {
     'x-rpc-device_id': deviceId
   })
+}
+
+export async function hoyolabCreateVerification(stoken: string, accountId?: NumberId, mihoyoId?: string) {
+  return await requestMihoyo('get', 'https://bbs-api.miyoushe.com/misc/api/createVerification', undefined, undefined, undefined, {
+    is_high: 'true'
+  }, undefined, undefined, await constructStoken(stoken, accountId, mihoyoId))
+}
+export async function hoyolabVerifyVerification(challenge: string, validate: string, seccode: string, stoken: string, accountId?: NumberId, mihoyoId?: string) {
+  return await requestMihoyo('post', 'https://bbs-api.miyoushe.com/misc/api/verifyVerification', undefined, undefined, undefined, undefined, {
+    geetest_challenge: challenge,
+    geetest_validate: validate,
+    geetest_seccode: seccode
+  }, undefined, await constructStoken(stoken, accountId, mihoyoId))
 }

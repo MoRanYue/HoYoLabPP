@@ -22,7 +22,6 @@ import VIcon from '@/components/VIcon.vue';
 import VButton from '@/components/VButton.vue';
 import VTab from '@/components/VTab.vue';
 import VTabItem from '@/components/VTabItem.vue';
-import VFrameView from '@/components/VFrameView.vue';
 import type { NumberId } from '@/constants/Api';
 import { cookieToDict, formatTime, randomChar } from '@/utils/utils';
 import type { Dict } from '@/constants/TDict';
@@ -30,9 +29,9 @@ import type { Dict } from '@/constants/TDict';
 const route = useRoute()
 const user = useUserStore()
 
-let needLogin: boolean = true
-if ((user.loggedIn && user.stoken) || route.params.userId) {
-  needLogin = false
+let needLogin = ref(true)
+if (user.loggedIn) {
+  needLogin.value = false
 }
 
 const loginMethods = [
@@ -89,7 +88,7 @@ async function loginByPasswordThroughMihoyo() {
   }
 
   const info = accountInfo.data.account_info
-  await storeTokens(info.weblogin_token, info.account_id)
+  await storeTokensWithLoginTicket(info.weblogin_token, info.account_id)
 }
 
 async function loginByPasswordThroughHoyolab() {
@@ -143,16 +142,16 @@ async function loginByQrcodeThroughHoyolab() {
 
     const status = qrcodeStatus.data.status
     if (status == 'Created') {
-      notify('已创建', '二维码状态', 'info')
+      notify('已创建', '二维码状态')
     }
     else if (status == 'Scanned') {
       if (!toValue(qrcodeScannedTime)) {
         qrcodeScannedTime.value = Date.now()
       }
-      notify('已扫描', '二维码状态', 'info')
+      notify('已扫描', '二维码状态')
     }
     else if (status == 'Confirmed') {
-      notify('已确认登录', '二维码状态', 'success')
+      notify('已确认登录', '二维码状态')
       clearInterval(timer)
 
       qrcodeCreativeTime.value = undefined
@@ -168,7 +167,7 @@ async function loginByQrcodeThroughHoyolab() {
       user.cookieToken = tokens.cookie_token_v2
       user.ltoken.v2 = tokens.ltoken_v2
 
-      notify('登录成功', '二维码状态', 'info')
+      notify('登录成功', '二维码状态', 'success')
 
       return
     }
@@ -176,7 +175,7 @@ async function loginByQrcodeThroughHoyolab() {
   }, 1500)
 }
 
-async function storeTokens(loginTicket: string, accountId: NumberId) {
+async function storeTokensWithLoginTicket(loginTicket: string, accountId: NumberId) {
   user.loggedIn = true
   user.loginTicket = loginTicket
   user.accountId = String(accountId)
@@ -197,6 +196,8 @@ async function storeTokens(loginTicket: string, accountId: NumberId) {
 
   const hoyolabCookieToken = await getHoyolabCookieTokenByStoken(user.stoken.v1, user.mihoyoId, user.accountId)
   user.cookieToken = hoyolabCookieToken.data.cookie_token
+
+  needLogin.value = false
 }
 
 if (!user.deviceFingerprint) {
@@ -218,8 +219,6 @@ function destroyLoginProcess(_, value: string) {
 </script>
 
 <template>
-  <v-frame-view :src="verificationCode.src" v-if="verificationCode.isVerifing"></v-frame-view>
-
   <div class="login" v-if="needLogin">
     <div class="login-container">
       <h1>登录</h1>

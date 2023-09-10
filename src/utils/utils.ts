@@ -103,6 +103,10 @@ export function cookieToDict(cookies: string) {
   return dict
 }
 
+export function getNowTime() {
+  return Math.floor(Date.now() / 1000)
+}
+
 export function formatTime(time: Date, addtionalZeros: boolean = true, removeMs: boolean = true): string {
   const year = time.getFullYear(),
   month = time.getMonth() + 1,

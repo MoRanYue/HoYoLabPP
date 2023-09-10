@@ -1,5 +1,8 @@
 <script setup lang="ts">
 import { ref } from 'vue'
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
 
 const props = withDefaults(defineProps<{
   nickname: string
@@ -13,7 +16,7 @@ const props = withDefaults(defineProps<{
 })
 
 function toUserInfoPage() {
-  console.log('open user info page', props.userId)
+  router.push(`/user/${props.userId}`)
 }
 
 </script>

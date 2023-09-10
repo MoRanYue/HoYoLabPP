@@ -9,9 +9,10 @@ import VArticleView from '@/components/VArticleView.vue';
 import VArticleItem from '@/components/VArticleItem.vue';
 import VIcon from '@/components/VIcon.vue';
 import VTextInput from '@/components/VTextInput.vue'
+import VVerificationView from '@/components/VVerificationView.vue';
 import { useUserStore } from '@/stores/user'
 import type { Dict } from '@/constants/TDict';
-import type { NumberId } from '@/constants/Api';
+import { HoyolabApiReturnCode, type NumberId } from '@/constants/Api';
 import type { UserAnchorInfo } from '@/constants/IUserAnchorInfo';
 
 const user = useUserStore()
@@ -23,6 +24,8 @@ const { isLoading: homeIsLoading, isReady: homeIsReady, state: homeState, error:
 
 const articleEnd = ref<HTMLElement>()
 const isTimeToRefresh = useElementVisibility(articleEnd)
+
+const needValidate = ref(false)
 
 const recommendedPosts = ref([])
 async function refreshArticle(append: boolean = false) {
@@ -55,7 +58,7 @@ watch(recommendedPosts, async (posts) => {
   });
 
   const articleDynamicInfo = await dynamicData(postIds)
-  if (articleDynamicInfo.retcode != 0) {
+  if (articleDynamicInfo.retcode != HoyolabApiReturnCode.success) {
     return
   }
 
@@ -120,10 +123,13 @@ const currentArticle: Ref<{
   }
 })
 async function viewPost(postId: string) {
-  const postInfo = await articleInfo(postId, user.stoken.v2, user.accountId, user.mihoyoId)
+  const postInfo = await articleInfo(postId, 'application', user.stoken.v2, user.accountId, user.mihoyoId)
 
-  // 暂时先这样
-  if (postInfo.retcode != 0) {
+  if (postInfo.retcode != HoyolabApiReturnCode.success) {
+    if (postInfo.retcode == HoyolabApiReturnCode.needVerification) {
+      needValidate.value = true
+    }
+
     return
   }
   currentArticle.value.isBrowsing = true
@@ -169,6 +175,9 @@ if (route.params.postId) {
     :status="currentArticle.status" :content="currentArticle.content" :title="currentArticle.title" 
     :stats="currentArticle.stats" :post-view-type="currentArticle.postViewType" @close="currentArticle.isBrowsing = false"
     :is-loading="currentArticle.isLoading" :is-ready="currentArticle.isReady" :post-images="currentArticle.postImages"></v-article-view>
+  </section>
+  <section v-show="needValidate">
+    <v-verification-view @finish="needValidate = false"></v-verification-view>
   </section>
 
   <div class="article">

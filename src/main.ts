@@ -2,6 +2,7 @@ import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 import piniaPersist from 'pinia-plugin-persist'
 import { MotionPlugin } from '@vueuse/motion'
+import 'https://static.geetest.com/static/js/gt.0.4.9.js'
 
 import App from './App.vue'
 import router from './router'

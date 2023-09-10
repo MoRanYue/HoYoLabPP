@@ -42,7 +42,30 @@ export const useUserStore = defineStore('user', () => {
     }
   }
 
-  return { loggedIn, stoken, cookieToken, deviceFingerprint, ltoken, gameToken, hk4eToken, mihoyoId, accountId, loginTicket, authKey, stokenCookie }
+  function ltokenCookie(version: 1 | 2 = 2) {
+    if (version == 2) {
+      return {
+        ltoken_v2: toValue(ltoken).v2,
+        ltmid_v2: toValue(mihoyoId)
+      }
+    }
+    else if (version == 1) {
+      return {
+        ltoken: toValue(ltoken).v1,
+        ltuid: toValue(accountId)
+      }
+    }
+  }
+
+  function chooseLtoken() {
+    return toValue(ltoken).v2 || toValue(ltoken).v1
+  }
+
+  function chooseStoken() {
+    return toValue(stoken).v2 || toValue(stoken).v1
+  }
+
+  return { loggedIn, stoken, cookieToken, deviceFingerprint, ltoken, gameToken, hk4eToken, mihoyoId, accountId, loginTicket, authKey, stokenCookie, ltokenCookie, chooseLtoken, chooseStoken }
 }, {
   persist: {
     enabled: true,

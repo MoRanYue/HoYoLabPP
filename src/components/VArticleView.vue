@@ -65,7 +65,7 @@ let status: Ref<{
   liked: false,
   collected: false
 })
-let replies = ref({
+const replies = ref({
   pinnedReplyId: 0,
   replies: []
 })
@@ -137,11 +137,11 @@ watch(props, async () => {
 
   content.value = await processStructContent(contentSource)
   status.value = {...props.status}
-  replies = ref({
+  replies.value = {
     pinnedReplyId: 0,
     replies: []
-  })
-  refreshReply(replyOrderType)
+  }
+  await refreshReply(replyOrderType)
 })
 
 watch(isTimeToRefresh, (needRefresh) => {
@@ -155,12 +155,14 @@ async function refreshReply(orderType: keyof typeof ReplyOrderType = 'heat', app
     return
   }
 
+  console.log(replies.value)
   const oldReplyData = toValue(replies).replies
   let lastReplyId = undefined
   if (oldReplyData.length != 0) {
     lastReplyId = oldReplyData.length
   }
-  const replyInfo = await postReplyInfo(props.postId, orderType, 20, lastReplyId)
+  console.log('lri', lastReplyId)
+  const replyInfo = await postReplyInfo(props.postId, orderType, 20, lastReplyId, 'web', user.chooseLtoken(), user.accountId, user.mihoyoId)
 
   if (replyInfo.retcode != 0) {
     return
@@ -213,8 +215,8 @@ function changeReplyOrder(value: keyof typeof ReplyOrderType) {
 async function viewReply(floor: number, parentReplyId: number | string) {
   currentReply.value.isBrowsing = true
 
-  const parentReply = await replyInfo(props.postId, parentReplyId)
-  const subReply = await subReplyInfo(props.postId, floor, 20)
+  const parentReply = await replyInfo(props.postId, parentReplyId, 'web', user.chooseLtoken(), user.accountId, user.mihoyoId)
+  const subReply = await subReplyInfo(props.postId, floor, 20, undefined, 'web', user.chooseLtoken(), user.accountId, user.mihoyoId)
   if (parentReply.retcode != 0 || subReply.retcode != 0) {
     return
   }
@@ -260,7 +262,7 @@ function closeView() {
 }
 
 async function upvote() {
-  const upvoteInfo = await upvotePost(props.postId, toValue(status).liked, user.stoken.v2, user.accountId, user.mihoyoId)
+  const upvoteInfo = await upvotePost(props.postId, toValue(status).liked, 'application', user.chooseStoken(), user.accountId, user.mihoyoId)
   if (upvoteInfo.retcode != 0) {
     return
   }
@@ -268,7 +270,7 @@ async function upvote() {
   status.value.liked = !toValue(status).liked
 }
 async function collect() {
-  const collectInfo = await collectPost(props.postId, toValue(status).collected, user.stoken.v2, user.accountId, user.mihoyoId)
+  const collectInfo = await collectPost(props.postId, toValue(status).collected, 'application', user.chooseStoken(), user.accountId, user.mihoyoId)
   if (collectInfo.retcode != 0) {
     return
   }

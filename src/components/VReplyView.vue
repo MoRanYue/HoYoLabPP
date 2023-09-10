@@ -7,6 +7,7 @@ import { subReplyInfo } from '@/api/interfaces';
 import type { Dict } from '@/constants/TDict';
 import type { UserAnchorInfo } from '@/constants/IUserAnchorInfo';
 import { useElementVisibility, useScroll } from '@vueuse/core';
+import { useUserStore } from '@/stores/user'
 import { ref, watch } from 'vue'
 
 const props = withDefaults(defineProps<{
@@ -38,6 +39,8 @@ watch(props, () => {
   subReply = props.subReply
 })
 
+const user = useUserStore()
+
 const replyEnd = ref<HTMLElement>()
 const contentElement = ref<HTMLElement>()
 const isTimeToRefresh = useElementVisibility(replyEnd)
@@ -56,7 +59,7 @@ async function appendReply() {
   const subReplyCount = subReply.length
   const lastReplyId = BigInt(subReply[subReplyCount - 1].reply.reply_id) + 1n
   
-  const subReplyData = (await subReplyInfo(props.postId, props.floor, 20, String(lastReplyId))).data.list
+  const subReplyData = (await subReplyInfo(props.postId, props.floor, 20, String(lastReplyId), 'web', user.chooseLtoken(), user.accountId, user.mihoyoId)).data.list
   subReplyData.forEach(reply => {
     subReply.push(reply)
   });

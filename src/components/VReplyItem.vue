@@ -58,7 +58,7 @@ onMounted(refreshInfo)
 
 async function vote(downvote: boolean = false) {
   if (downvote) {
-    const voteInfo = await downvoteReply(props.postId, props.replyId, toValue(status).disliked, user.stoken.v2, user.accountId, user.mihoyoId)
+    const voteInfo = await downvoteReply(props.postId, props.replyId, toValue(status).disliked, 'web', user.chooseLtoken(), user.accountId, user.mihoyoId)
     if (voteInfo.retcode != 0) {
       return
     }
@@ -69,7 +69,7 @@ async function vote(downvote: boolean = false) {
     status.value.disliked = !toValue(status).disliked
   }
   else {
-    const voteInfo = await upvoteReply(props.postId, props.replyId, toValue(status).liked, user.stoken.v2, user.accountId, user.mihoyoId)
+    const voteInfo = await upvoteReply(props.postId, props.replyId, toValue(status).liked, 'web', user.chooseLtoken(), user.accountId, user.mihoyoId)
     if (voteInfo.retcode != 0) {
       return
     }

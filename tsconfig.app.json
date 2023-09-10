@@ -4,6 +4,8 @@
   "exclude": ["src/**/__tests__/*"],
   "compilerOptions": {
     "composite": true,
+    "allowJs": true,
+    "checkJs": true,
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"],
