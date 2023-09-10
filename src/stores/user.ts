@@ -27,6 +27,29 @@ export const useUserStore = defineStore('user', () => {
     b: ''
   })
 
+  function logout() {
+    stoken.value = {
+      v1: '',
+      v2: ''
+    }
+    ltoken.value = {
+      v1: '',
+      v2: ''
+    }
+    gameToken.value = ''
+    hk4eToken.value = ''
+    mihoyoId.value = ''
+    accountId.value = ''
+    deviceFingerprint.value = ''
+    loginTicket.value = ''
+    cookieToken.value = ''
+    authKey.value = {
+      a: '',
+      b: ''
+    }
+    loggedIn.value = false
+  }
+
   function stokenCookie(version: 1 | 2 = 2) {
     if (version == 2) {
       return {
@@ -65,7 +88,8 @@ export const useUserStore = defineStore('user', () => {
     return toValue(stoken).v2 || toValue(stoken).v1
   }
 
-  return { loggedIn, stoken, cookieToken, deviceFingerprint, ltoken, gameToken, hk4eToken, mihoyoId, accountId, loginTicket, authKey, stokenCookie, ltokenCookie, chooseLtoken, chooseStoken }
+  return { loggedIn, stoken, cookieToken, deviceFingerprint, ltoken, gameToken, hk4eToken, mihoyoId, accountId, loginTicket, authKey, 
+    stokenCookie, ltokenCookie, chooseLtoken, chooseStoken, logout }
 }, {
   persist: {
     enabled: true,

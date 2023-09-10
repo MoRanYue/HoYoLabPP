@@ -143,6 +143,7 @@ const height: string = <string>attrs.height + 'px' ?? 'fit-content'
     justify-content: center;
     align-items: center;
     flex-direction: row;
+    position: relative;
 
     letter-spacing: #button-primary()[text-spacing];
     font-size: #button-primary()[font-size];

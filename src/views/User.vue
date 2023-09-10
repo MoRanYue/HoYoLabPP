@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useUserStore } from '@/stores/user';
 import { useRoute } from 'vue-router';
-import { ref, watch } from 'vue';
+import { ref, watch, type Ref, onMounted } from 'vue';
 import { toValue, useElementVisibility } from '@vueuse/core';
 import { AwesomeQR } from 'awesome-qr'
 import { notify } from '@/utils/notification'
@@ -22,6 +22,7 @@ import VIcon from '@/components/VIcon.vue';
 import VButton from '@/components/VButton.vue';
 import VTab from '@/components/VTab.vue';
 import VTabItem from '@/components/VTabItem.vue';
+import VDataShow from '@/components/VDataShow.vue';
 import type { NumberId } from '@/constants/Api';
 import { cookieToDict, formatTime, randomChar } from '@/utils/utils';
 import type { Dict } from '@/constants/TDict';
@@ -131,13 +132,12 @@ async function loginByQrcodeThroughHoyolab() {
     }
 
     if (qrcodeStatus.retcode != 0) {
-      notify(`${qrcodeStatus.retcode}：${qrcodeStatus.message}`, '查询二维码状态失败', 'error')
-
       qrcodeCreativeTime.value = undefined
       qrcodeScannedTime.value = undefined
+      hoyolabQrcode.value.src = ''
 
       clearInterval(timer)
-      return
+      return await loginByQrcodeThroughHoyolab()
     }
 
     const status = qrcodeStatus.data.status
@@ -200,11 +200,14 @@ async function storeTokensWithLoginTicket(loginTicket: string, accountId: Number
   needLogin.value = false
 }
 
-if (!user.deviceFingerprint) {
-  getFingerprint().then(fp => {
-    user.deviceFingerprint = <string>(fp.data.device_fp)
-  })
+function setDeviceFp() {
+  if (!user.deviceFingerprint) {
+    getFingerprint().then(fp => {
+      user.deviceFingerprint = <string>(fp.data.device_fp)
+    })
+  }
 }
+setDeviceFp()
 
 function destroyLoginProcess(_, value: string) {
   isDestroyingRequest.value = true
@@ -216,10 +219,54 @@ function destroyLoginProcess(_, value: string) {
   }, 1700)
 }
 
+const userData: Ref<{
+  nickname: string
+  userId: NumberId
+  avatar: string
+  introduce: string
+}> = ref({
+  nickname: '',
+  userId: '',
+  avatar: '',
+  introduce: ''
+})
+
+onMounted(async () => {
+  const specialUserId = route.params.userId
+  let userDataRes: Dict
+  if (specialUserId) {
+    userDataRes = await userInfo(specialUserId, 'web', user.chooseLtoken(), user.accountId, user.mihoyoId)
+  }
+  else {
+    userDataRes = await userInfo(user.accountId, 'web', user.chooseLtoken(), user.accountId, user.mihoyoId)
+  }
+
+  if (userDataRes.retcode != 0) {
+    return
+  }
+
+  const info = userDataRes.data.user_info
+  userData.value.nickname = info.nickname
+  userData.value.avatar = info.avatar_url
+  userData.value.userId = info.uid
+  userData.value.introduce = info.introduce
+})
+
+const hideSensitiveInfo = ref(true)
+function toggleSensitiveInfo() {
+  hideSensitiveInfo.value = !toValue(hideSensitiveInfo)
+}
+
+function logout() {
+  user.logout()
+  setDeviceFp()
+  needLogin.value = true
+}
+
 </script>
 
 <template>
-  <div class="login" v-if="needLogin">
+  <section class="login" v-if="needLogin && !route.params.userId">
     <div class="login-container">
       <h1>登录</h1>
 
@@ -257,21 +304,49 @@ function destroyLoginProcess(_, value: string) {
         </v-tab-item>
       </v-tab>
     </div>
-  </div>
-  <div class="user" v-else>
+  </section>
 
-  </div>
+  <section class="user" v-else>
+    <div class="operation" v-if="user.loggedIn">
+
+    </div>
+
+    <div class="details" v-if="userData.userId">
+      <div class="avatar">
+        <img :src="userData.avatar" :title="userData.nickname" :alt="userData.userId">
+      </div>
+
+      <div class="info">
+        <span class="nickname">{{ userData.nickname }}</span>
+        <span class="account-id">米哈游通行证ID：{{ userData.userId }}</span>
+        <p class="introduce">{{ userData.introduce }}</p>
+      </div>
+    </div>
+
+    <div class="sensitive-info" v-if="userData.userId == user.accountId">
+      <div class="operation">
+        <v-button type="primary" icon="personal-privacy" @click="toggleSensitiveInfo">切换敏感信息</v-button>
+        <v-button type="primary" icon="exit" @click="logout">登出</v-button>
+      </div>
+
+      <ul>
+        <li><v-data-show desc="SToken V1" :data="user.stoken.v1 || '未获取'" :allow-operation="Boolean(user.stoken.v1)" :blur="hideSensitiveInfo"></v-data-show></li>
+        <li><v-data-show desc="SToken V2" :data="user.stoken.v2 || '未获取'" :allow-operation="Boolean(user.stoken.v2)" :blur="hideSensitiveInfo"></v-data-show></li>
+        <li><v-data-show desc="LToken V1" :data="user.ltoken.v1 || '未获取'" :allow-operation="Boolean(user.ltoken.v1)" :blur="hideSensitiveInfo"></v-data-show></li>
+        <li><v-data-show desc="LToken V2" :data="user.ltoken.v2 || '未获取'" :allow-operation="Boolean(user.ltoken.v2)" :blur="hideSensitiveInfo"></v-data-show></li>
+        <li><v-data-show desc="MiHoYo ID" :data="user.mihoyoId || '未获取'" :allow-operation="Boolean(user.mihoyoId)" :blur="hideSensitiveInfo"></v-data-show></li>
+        <li><v-data-show desc="Game Token" :data="user.gameToken || '未获取'" :allow-operation="Boolean(user.gameToken)" :blur="hideSensitiveInfo"></v-data-show></li>
+        <li><v-data-show desc="Login Ticket（临时）" :data="user.loginTicket || '未获取'" :allow-operation="Boolean(user.loginTicket)" :blur="hideSensitiveInfo"></v-data-show></li>
+        <li><v-data-show desc="Hk4e Token（临时）" :data="user.hk4eToken || '未获取'" :allow-operation="Boolean(user.hk4eToken)" :blur="hideSensitiveInfo"></v-data-show></li>
+        <li><v-data-show desc="Cookie Token（临时）" :data="user.cookieToken || '未获取'" :allow-operation="Boolean(user.cookieToken)" :blur="hideSensitiveInfo"></v-data-show></li>
+      </ul>
+    </div>
+  </section>
 </template>
 
 <style scoped lang="less">
 @import '@/assets/base.less';
 
-#user() {
-
-}
-#dark-user() {
-
-}
 #login() {
   title-interval: 1em;
   padding: 0.5em 0.8em;
@@ -287,6 +362,141 @@ function destroyLoginProcess(_, value: string) {
   bg-color: lighten(#dark()[primary], 7%);
   title-color: lighten(#dark-text()[important], 10%);
   qrcode-border-color: darken(#dark()[content], 20%);
+}
+#user() {
+  details-padding: 3em;
+  sensitive-padding: 1em;
+  details-interval: 1.5em;
+  sensitive-interval: 1em;
+  section-radius: #border-radius()[large-x];
+  avatar-size: 9em;
+  avatar-padding: 0.3em;
+  nickname-font-size: 4rem;
+  avatar-circle-size: 3px;
+  introduce-padding: 0.4em;
+  introduce-font-size: 0.8rem;
+  introduce-radius: #border-radius()[medium];
+  introduce-interval: 0.4em;
+  sensitive-list-interval: 0.5em;
+  sensitive-item-interval: 0.5em;
+  operation-btn-interval: 0.4em;
+}
+#dark-user() {
+  details-bg-color: lighten(#dark()[primary], 8%);
+  avatar-bg-color: lighten(#dark()[secondary], 10%);
+  avatar-circle-color: lighten(#color()[deepblue], 5%);
+  nickname-color: lighten(#dark-text()[important], 8%);
+  introduce-bg-color: lighten(#dark()[secondary], 13%);
+  sensitive-bg-color: darken(#dark()[primary], 4%);
+}
+
+.user {
+  margin: auto;
+  width: 60%;
+
+  > div {
+    border-radius: #user()[section-radius];
+  }
+
+  > .details {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    background-color: #dark-user()[details-bg-color];
+    padding: #user()[details-padding];
+    margin-top: #user()[details-interval];
+
+    > .avatar {
+      border-radius: #border-radius()[circle];
+      overflow: hidden;
+      height: #user()[avatar-size];
+      user-select: none;
+
+      &::before {
+        content: "";
+        position: absolute;
+        width: #user()[avatar-padding] + #user()[avatar-size];
+        height: #user()[avatar-padding] + #user()[avatar-size];
+        // background-color: #dark-user()[avatar-bg-color];
+        border: #user()[avatar-circle-size] solid #dark-user()[avatar-circle-color];
+        border-radius: #border-radius()[circle];
+        transform: translate(0 - 2 * #user()[avatar-circle-size] - 0 * #user()[avatar-padding], 0 - 2 * #user()[avatar-circle-size] - 0 * #user()[avatar-padding]);
+      }
+
+      img {
+        height: 100%;
+      }
+    }
+    
+    > .info {
+      display: flex;
+      flex-direction: column;
+
+      .nickname {
+        font-family: 'LXGW WenKai', sans-serif;
+        font-size: #user()[nickname-font-size];
+        color: #dark-user()[nickname-color];
+      }
+
+      .introduce {
+        display: block;
+        padding: #user()[introduce-padding];
+        font-size: #user()[introduce-font-size];
+        background-color: #dark-user()[introduce-bg-color];
+        border-radius: #user()[introduce-radius];
+        margin-top: #user()[introduce-interval];
+      }
+    }
+  }
+  
+  > .sensitive-info {
+    background-color: #dark-user()[sensitive-bg-color];
+    margin-top: #user()[sensitive-interval];
+    padding: #user()[sensitive-padding];
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: nowrap;
+
+    > .operation {
+      display: flex;
+      flex-direction: row;
+      flex-wrap: wrap;
+
+      .button {
+        margin-right: #user()[operation-btn-interval];
+
+        &:last-child {
+          margin-right: 0;
+        }
+      }
+    }
+
+    > ul {
+      flex-grow: 1;
+      display: flex;
+      justify-content: center;
+      flex-direction: row;
+      flex-wrap: wrap;
+      list-style: none;
+      margin-top: #user()[sensitive-list-interval];
+
+      > li {
+        width: 17.5em;
+        height: 10em;
+
+        margin-right: #user()[sensitive-item-interval];
+        margin-bottom: #user()[sensitive-item-interval];
+
+        .data-show {
+          width: 100%;
+          height: 100%;
+        }
+      }
+    }
+  }
 }
 
 .login {
@@ -352,7 +562,4 @@ function destroyLoginProcess(_, value: string) {
   }
 }
 
-.user {
-
-}
 </style>

@@ -1,4 +1,5 @@
 import type { Dict } from "@/constants/TDict";
+import { notify } from './notification'
 import { isString } from "@vue/shared"
 
 export function toPascalCase(val: string): string {
@@ -105,6 +106,10 @@ export function cookieToDict(cookies: string) {
 
 export function getNowTime() {
   return Math.floor(Date.now() / 1000)
+}
+
+export function constructApiError(code: number, message: string) {
+  notify(`${code}：${message}`, '米游社', 'error')
 }
 
 export function formatTime(time: Date, addtionalZeros: boolean = true, removeMs: boolean = true): string {
