@@ -6,9 +6,9 @@ import VIcon from './VIcon.vue'
 import { subReplyInfo } from '@/api/interfaces';
 import type { Dict } from '@/constants/TDict';
 import type { UserAnchorInfo } from '@/constants/IUserAnchorInfo';
-import { useElementVisibility, useScroll } from '@vueuse/core';
+import { toValue, useElementVisibility, useScroll } from '@vueuse/core';
 import { useUserStore } from '@/stores/user'
-import { ref, watch } from 'vue'
+import { onMounted, ref, watch, type Ref } from 'vue'
 
 const props = withDefaults(defineProps<{
   sender: UserAnchorInfo
@@ -34,10 +34,13 @@ const props = withDefaults(defineProps<{
 })
 const emits = defineEmits(['close'])
 
-let subReply: Dict[] = []
-watch(props, () => {
-  subReply = props.subReply
-})
+let subReply: Ref<Dict[]> = ref([])
+function prepareReplies() {
+  subReply.value = props.subReply
+  console.log('sr', props.subReply)
+}
+// watch(props, prepareReplies)
+onMounted(prepareReplies)
 
 const user = useUserStore()
 
@@ -46,23 +49,22 @@ const contentElement = ref<HTMLElement>()
 const isTimeToRefresh = useElementVisibility(replyEnd)
 
 watch(isTimeToRefresh, (needRefresh) => {
-  if (needRefresh) {
+  if (needRefresh && toValue(subReply).length != 0) {
     appendReply()
   }
 })
 
 async function appendReply() {
-  if (subReply.length == 0) {
-    return
+  let lastReplyId: string | undefined = undefined
+  if (toValue(subReply).length != 0) {
+    const subReplyCount = toValue(subReply).length
+    const lastReplyIdHeader = toValue(subReply)[subReplyCount - 1].reply.reply_id.slice(0, 11)
+    lastReplyId = lastReplyIdHeader + String(parseInt(toValue(subReply)[subReplyCount - 1].reply.reply_id.slice(11)) + 1)
   }
-
-  const subReplyCount = subReply.length
-  const lastReplyIdHeader = subReply[subReplyCount - 1].reply.reply_id.slice(0, 11)
-  const lastReplyId = lastReplyIdHeader + String(parseInt(subReply[subReplyCount - 1].reply.reply_id.slice(11)) + 1)
   
-  const subReplyData = (await subReplyInfo(props.postId, props.floor, 20, String(lastReplyId), 'web', user.chooseLtoken(), user.accountId, user.mihoyoId)).data.list
+  const subReplyData = (await subReplyInfo(props.postId, props.floor, 20, lastReplyId, 'web', user.chooseLtoken(), user.accountId, user.mihoyoId)).data.list
   subReplyData.forEach(reply => {
-    subReply.push(reply)
+    toValue(subReply).push(reply)
   });
 }
 

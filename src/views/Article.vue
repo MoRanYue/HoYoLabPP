@@ -65,8 +65,11 @@ async function refreshArticle(append: boolean = false) {
       return
     }
 
-    console.log('lfai', lastForumArticleId.value)
     const res = await forumArticle(currentChildForumCategory.id, currentForumGameId, toValue(articleOrderType), toValue(lastForumArticleId), 20, 'web')
+    if (res.retcode != HoyolabApiReturnCode.success) {
+      return
+    }
+
     lastForumArticleId.value = res.data.last_id
 
     res.data.list.forEach(article => {
@@ -75,6 +78,9 @@ async function refreshArticle(append: boolean = false) {
   }
   else {
     const res = await homeInfo(currentForumGameId, toValue(page), 20)
+    if (res.retcode != HoyolabApiReturnCode.success) {
+      return
+    }
 
     res.data.recommended_posts.forEach(article => {
       recommendedPosts.value.push(article)
@@ -278,7 +284,7 @@ async function switchChildForumCategory(forumId: NumberId) {
       forumContainerStyle.value.backgroundImage = `url(${currentChildForumCategory.headerPicture})`
     }
     else {
-      // forumContainerStyle.value.backgroundImage = `url(${currentChildForumCategory.headerPicture})`
+      forumContainerStyle.value.backgroundImage = ``
     }
   }
 

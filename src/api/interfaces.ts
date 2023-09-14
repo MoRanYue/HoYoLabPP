@@ -234,7 +234,7 @@ export async function downvoteReply(postId: NumberId, replyId: NumberId, cancel:
     is_cancel: cancel,
     post_id: String(postId),
     reply_id: String(replyId)
-  }, undefined, data.cancel)
+  }, undefined, data.cookies)
 }
 export async function userInfo(userId: NumberId, type: InterfaceType, token?: string, accountId?: NumberId, mihoyoId?: string) {
   const data = await setupData(type, 'https://bbs-api.miyoushe.com/user/api/getUserFullInfo', 'https://bbs-api.miyoushe.com/user/wapi/getUserFullInfo', token, accountId, mihoyoId)
