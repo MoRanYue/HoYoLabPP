@@ -1,23 +1,21 @@
 <script setup lang="ts">
 import { toValue } from '@vueuse/core';
-import { ref, watch, onMounted } from 'vue';
+import type { SwitchInfo } from '@/constants/TSwitchInfo';
+import { ref, watch, onMounted, getCurrentInstance } from 'vue';
 
 const props = withDefaults(defineProps<{
-  choices: {
-    text: string
-    value?: string
-    default?: boolean
-  }[]
+  choices: SwitchInfo
 }>(), {
 
 })
 const emits = defineEmits(['choose'])
+const inst = getCurrentInstance()
 
 const choices = ref<HTMLElement>()
 
 const choosedClass: string = 'active-choice'
 
-onMounted(() => {
+function setDefaultChoice() {
   const choicesValue = toValue(choices)
 
   if (!choicesValue) {
@@ -27,13 +25,23 @@ onMounted(() => {
   for (let i = 0; i < choicesValue.children.length; i++) {
     const choice = <HTMLLIElement>choicesValue.children[i];
     const choiceInfo = props.choices[i]
-
-    if (choiceInfo.default && choiceInfo.text == choice.textContent) {
-      choice.className = choosedClass
-      break
+    
+    if (choiceInfo.default) {
+      if (choiceInfo.text == choice.textContent) {
+        choice.className = choosedClass
+        break
+      }
+    }
+    else {
+      if (i == choicesValue.children.length - 1) {
+        choicesValue.children[0].className = choosedClass
+      }
     }
   }
-})
+}
+
+onMounted(setDefaultChoice)
+watch(props, () => inst?.proxy?.$nextTick(setDefaultChoice))
 
 function choose(text: string, value?: string) {
   const choicesValue = toValue(choices)
@@ -57,12 +65,12 @@ function choose(text: string, value?: string) {
     }
   }
 
-  emits('choose', value || text)
+  emits('choose', value ?? text)
 }
 </script>
 
 <template>
-  <div class="switch">
+  <div class="switch" v-show="props.choices">
     <ul ref="choices">
       <li v-for="choice in props.choices" :key="choice.value" @click="choose(choice.text, choice.value)">
         {{ choice.text }}

@@ -162,6 +162,7 @@ async function loginByQrcodeThroughHoyolab() {
         tokens = {...tokens, ...cookieToDict(cookie)}
       });
 
+      user.loggedIn = true
       user.accountId = tokens.account_id_v2
       user.mihoyoId = tokens.account_mid_v2
       user.cookieToken = tokens.cookie_token_v2
@@ -293,6 +294,7 @@ function logout() {
             <img class="qrcode" ref="hoyolabQrcode">
             <span v-if="qrcodeCreativeTime">二维码生成于{{ formatTime(new Date(qrcodeCreativeTime)) }}</span>
             <span v-if="qrcodeScannedTime">二维码被扫描于{{ formatTime(new Date(qrcodeScannedTime)) }}</span>
+            <span>该登录方式无法使用米游社自动签到</span>
             <span>请使用米游社APP扫描此二维码并确认登录</span>
           </div>
         </v-tab-item>
@@ -319,7 +321,7 @@ function logout() {
       <div class="info">
         <span class="nickname">{{ userData.nickname }}</span>
         <span class="account-id">米哈游通行证ID：{{ userData.userId }}</span>
-        <p class="introduce">{{ userData.introduce }}</p>
+        <p class="introduce" v-if="userData.introduce.trim()">{{ userData.introduce }}</p>
       </div>
     </div>
 

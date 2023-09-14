@@ -14,7 +14,7 @@ import VBackgroundBlocker from './VBackgroundBlocker.vue';
 import VReplyView from './VReplyView.vue';
 import { formatTime } from '@/utils/utils'
 import type { Dict } from '@/constants/TDict';
-import type { NumberId } from '@/constants/Api';
+import { HoyolabApiReturnCode, type NumberId } from '@/constants/Api';
 import type { UserAnchorInfo } from '@/constants/IUserAnchorInfo';
 import type { StructContent } from '@/constants/IStructContent';
 import { type } from 'os';
@@ -145,7 +145,7 @@ watch(props, async () => {
 })
 
 watch(isTimeToRefresh, (needRefresh) => {
-  if (needRefresh) {
+  if (needRefresh && toValue(replies).replies.length != 0) {
     refreshReply(replyOrderType, true)
   }
 })
@@ -155,13 +155,11 @@ async function refreshReply(orderType: keyof typeof ReplyOrderType = 'heat', app
     return
   }
 
-  console.log(replies.value)
   const oldReplyData = toValue(replies).replies
   let lastReplyId = undefined
-  if (oldReplyData.length != 0) {
+  if (oldReplyData.length != 0 && append) {
     lastReplyId = oldReplyData.length
   }
-  console.log('lri', lastReplyId)
   const replyInfo = await postReplyInfo(props.postId, orderType, 20, lastReplyId, 'web', user.chooseLtoken(), user.accountId, user.mihoyoId)
 
   if (replyInfo.retcode != 0) {
@@ -213,11 +211,9 @@ function changeReplyOrder(value: keyof typeof ReplyOrderType) {
 }
 
 async function viewReply(floor: number, parentReplyId: number | string) {
-  currentReply.value.isBrowsing = true
-
   const parentReply = await replyInfo(props.postId, parentReplyId, 'web', user.chooseLtoken(), user.accountId, user.mihoyoId)
   const subReply = await subReplyInfo(props.postId, floor, 20, undefined, 'web', user.chooseLtoken(), user.accountId, user.mihoyoId)
-  if (parentReply.retcode != 0 || subReply.retcode != 0) {
+  if (parentReply.retcode != HoyolabApiReturnCode.success || subReply.retcode != HoyolabApiReturnCode.success) {
     return
   }
 
@@ -245,6 +241,8 @@ async function viewReply(floor: number, parentReplyId: number | string) {
     creating: reply.reply.created_at,
     updating: reply.reply.updated_at
   }
+
+  currentReply.value.isBrowsing = true
 }
 
 function closeView() {
@@ -326,8 +324,8 @@ async function collect() {
     <hr>
 
     <div class="post-content" ref="contentElement">
-      <div class="content" v-html="content" ref="articleContent">
-      </div>
+      <article class="content" v-html="content" ref="articleContent">
+      </article>
 
       <hr>
 
@@ -336,7 +334,8 @@ async function collect() {
         <v-switch :choices="[
           {text: '按热度', value: 'heat', default: true}, 
           {text: '发布时间（升序）', value: 'oldest'}, 
-          {text: '发布时间（倒序）', value: 'newest'}
+          {text: '发布时间（倒序）', value: 'newest'},
+          {text: '仅发布者', value: 'poster'}
         ]" @choose="changeReplyOrder"></v-switch>
       </div>
 

@@ -57,7 +57,8 @@ async function appendReply() {
   }
 
   const subReplyCount = subReply.length
-  const lastReplyId = BigInt(subReply[subReplyCount - 1].reply.reply_id) + 1n
+  const lastReplyIdHeader = subReply[subReplyCount - 1].reply.reply_id.slice(0, 11)
+  const lastReplyId = lastReplyIdHeader + String(parseInt(subReply[subReplyCount - 1].reply.reply_id.slice(11)) + 1)
   
   const subReplyData = (await subReplyInfo(props.postId, props.floor, 20, String(lastReplyId), 'web', user.chooseLtoken(), user.accountId, user.mihoyoId)).data.list
   subReplyData.forEach(reply => {

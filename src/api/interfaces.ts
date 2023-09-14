@@ -99,18 +99,55 @@ export enum ReplyOrderType {
   poster
 }
 
+export enum ForumArticleOrderType {
+  heat,
+  essence,
+  newest,
+  newestReply,
+}
+
 export async function articleInfo(id: NumberId, type: InterfaceType, token?: string, accountId?: NumberId, mihoyoId?: string) {
   const data = await setupData(type, 'https://bbs-api.miyoushe.com/post/api/getPostFull', 'https://bbs-api.miyoushe.com/post/wapi/getPostFull', token, accountId, mihoyoId)
   return await requestMihoyo('get', data.url, undefined, undefined, undefined, {
     post_id: id,
   }, undefined, undefined, data.cookies)
 }
-export async function homeInfo(gameId: number, page: number = 1, pageCount: number = 20) {
+export async function homeInfo(gameId: NumberId, page: number = 1, pageCount: number = 20) {
   return await requestMihoyo('get', 'https://bbs-api-static.miyoushe.com/apihub/wapi/webHome', undefined, undefined, undefined, {
     gids: gameId,
     page,
     page_size: pageCount
   }, undefined)
+}
+export async function forumArticle(forumId: NumberId, gameId: NumberId, orderType: keyof typeof ForumArticleOrderType, page: number | string | undefined = undefined, pageCount: number = 20, type: InterfaceType) {
+  const params: Dict = {
+    forum_id: forumId,
+    gids: gameId,
+    page_size: pageCount,
+    last_id: page ?? ''
+  }
+
+  if (orderType == 'heat') {
+    params.is_hot = 'true'
+    params.is_good = 'false'
+  }
+  else if (orderType == 'essence') {
+    params.is_good = 'true'
+    params.is_hot = 'false'
+  }
+  else if (orderType == 'newest') {
+    params.sort_type = 2
+    params.is_good = 'false'
+    params.is_hot = 'false'
+  }
+  else if (orderType == 'newestReply') {
+    params.sort_type = 1
+    params.is_good = 'false'
+    params.is_hot = 'false'
+  }
+
+  const data = await setupData(type, 'https://bbs-api.miyoushe.com/post/api/getForumPostList', 'https://bbs-api.miyoushe.com/post/wapi/getForumPostList')
+  return await requestMihoyo('get', data.url, undefined, undefined, undefined, params)
 }
 export async function dynamicData(postIds: NumberId[]) {
   return await requestMihoyo('get', 'https://bbs-api.miyoushe.com/post/wapi/getDynamicData', undefined, undefined, undefined, {
@@ -144,6 +181,9 @@ export async function postReplyInfo(postId: NumberId, orderType: keyof typeof Re
 }
 export async function emotionList() {
   return await requestMihoyo('get', 'https://bbs-api-static.miyoushe.com/misc/api/emoticon_set')
+}
+export async function forumInfo() {
+  return await requestMihoyo('get', 'https://bbs-api-static.miyoushe.com/apihub/wapi/getAllGamesForums')
 }
 export async function replyInfo(postId: NumberId, replyId: NumberId, type: InterfaceType, token?: string, accountId?: NumberId, mihoyoId?: string) {
   const data = await setupData(type, 'https://bbs-api.miyoushe.com/post/api/getRootReplyInfo', 'https://bbs-api.miyoushe.com/post/wapi/getRootReplyInfo', token, accountId, mihoyoId)
