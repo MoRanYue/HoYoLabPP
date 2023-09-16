@@ -11,13 +11,88 @@
   tab-content-border: 1px solid #dark-struct-content()[tab-content-border-color];
   tab-content-padding: 0.4em 0.8em;
   tab-content-radius: #border-radius()[large];
+  link-card-interval: 0.4em;
+  link-card-radius: #border-radius()[large];
+  link-card-cover-radius: #border-radius()[medium];
+  link-card-padding: 0.4em;
+  link-card-cover-width: 16rem;
+  link-card-cover-height: 8rem;
+  link-card-font-size: 1.5rem;
+  link-card-cover-interval: 0.5em;
+  link-card-gift-border: 2px solid;
+  link-card-gift-border-flow-time: 3s;
 }
 #dark-struct-content() {
   tab-summary-bg-color: lighten(#dark()[secondary], 14%);
   tab-summary-hover-bg-color: lighten(#dark()[secondary], 17%);
   tab-summary-open-bg-color: lighten(#dark()[secondary], 18%);
   tab-summary-open-hover-bg-color: lighten(#dark()[secondary], 20%);
-  tab-content-border-color: lighten(#dark()[sub], 5%)
+  tab-content-border-color: lighten(#dark()[sub], 5%);
+  link-card-bg-color: lighten(#dark()[secondary], 12%);
+  link-card-text-color: lighten(#dark-text()[important], 20%);
+}
+
+:deep(.hoyolab-link-card) {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: center;
+  background-color: #dark-struct-content()[link-card-bg-color];
+  border-radius: #struct-content()[link-card-radius];
+  overflow: hidden;
+  padding: #struct-content()[link-card-padding];
+  margin: #struct-content()[link-card-interval] 0;
+
+  a {
+    width: 100%;
+    text-decoration: none;
+    color: #dark-struct-content()[link-card-text-color];
+    user-select: none;
+  }
+
+  > .content {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    align-items: center;
+
+    .title {
+      text-align: center;
+
+      a {
+        font-size: #struct-content()[link-card-font-size];
+        width: 100%;
+        font-weight: 500;
+      }
+    }
+
+    // .price {
+    // }
+  }
+
+  > .cover {
+    width: #struct-content()[link-card-cover-width];
+    height: #struct-content()[link-card-cover-height];
+    border-radius: #struct-content()[link-card-cover-radius];
+    overflow: hidden;
+    margin-right: #struct-content()[link-card-cover-interval];
+
+    img {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+  }
+
+  &.article {
+
+  }
+  &.gift {
+    border: #struct-content()[link-card-gift-border];
+    animation: borderFlow #struct-content()[link-card-gift-border-flow-time] linear infinite;
+  }
 }
 
 :deep(.hoyolab-image) {

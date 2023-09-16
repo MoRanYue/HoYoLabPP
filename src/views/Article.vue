@@ -11,7 +11,7 @@ import VVerificationView from '@/components/VVerificationView.vue';
 import VSwitch from '@/components/VSwitch.vue';
 import { useUserStore } from '@/stores/user'
 import type { Dict } from '@/constants/TDict';
-import { HoyolabApiReturnCode, type NumberId } from '@/constants/Api';
+import { HoyolabApiReturnCode, HoyolabParentForum, type NumberId } from '@/constants/Api';
 import type { UserAnchorInfo } from '@/constants/IUserAnchorInfo';
 import { getForums } from '@/api/resources';
 import type { SwitchInfo } from '@/constants/TSwitchInfo';
@@ -418,6 +418,10 @@ onMounted(() => {
   .recommended-posts {
     > ul {
       list-style: none;
+      width: 100%;
+      // > li {
+      //   width: 100%;
+      // }
     }
   }
 

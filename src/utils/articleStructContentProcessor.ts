@@ -1,9 +1,13 @@
-import type { StructContent, StructVideo, StructImage, StructTextAttribute, StructImageAttribute, StructTab, StructDividingLine } from "@/constants/IStructContent";
+import type { StructContent, StructVideo, StructImage, StructTextAttribute, StructImageAttribute, StructTab, StructDividingLine, StructArticleLinkCard, StructGiftLinkCard } from "@/constants/IStructContent";
 import { htmlTag, reverseColor } from "./utils";
 import { emotionList } from "@/api/interfaces";
 import { getEmotions } from '@/api/resources'
 import convertColor from 'color-convert'
 import type { Dict } from "@/constants/TDict";
+
+function getIdInUrl(url: string) {
+  return url.split('/').pop()!.split('?').shift()
+}
 
 export async function processStructContent(data: string | StructContent[]) {
   let info: StructContent[] = <StructContent[]>data
@@ -201,6 +205,60 @@ export async function processStructContent(data: string | StructContent[]) {
         str += htmlTag('hr', {
           'class': className
         }, undefined, true)
+      }
+      else if (part.insert.link_card) {
+        if (part.insert.link_card.link_type == 1) {
+          const linkCard = <StructArticleLinkCard['link_card']>part.insert.link_card
+
+          const postId = getIdInUrl(linkCard.origin_url)
+
+          str += htmlTag('div', {
+            'class': 'hoyolab-link-card article'
+          }, htmlTag('div', {
+            'class': 'cover'
+          }, htmlTag('a', {
+            href: `/article/${postId}`,
+            title: postId,
+            target: '_blank'
+          }, htmlTag('img', {
+            src: linkCard.cover
+          }, undefined, true))) + htmlTag('div', {
+            'class': 'content'
+          }, htmlTag('div', {
+            'class': 'title'
+          }, htmlTag('a', {
+            href: `/article/${postId}`,
+            title: postId,
+            target: '_blank'
+          }, linkCard.title))))
+        }
+        else if (part.insert.link_card.link_type == 2) {
+          const linkCard = <StructGiftLinkCard['link_card']>part.insert.link_card
+
+          const giftId = getIdInUrl(linkCard.origin_url)
+
+          str += htmlTag('div', {
+            'class': 'hoyolab-link-card gift'
+          }, htmlTag('div', {
+            'class': 'cover'
+          }, htmlTag('a', {
+            href: linkCard.origin_url,
+            title: giftId,
+            target: '_blank'
+          }, htmlTag('img', {
+            src: linkCard.cover
+          }, undefined, true))) + htmlTag('div', {
+            'class': 'content'
+          }, htmlTag('div', {
+            'class': 'title'
+          }, htmlTag('a', {
+            href: linkCard.origin_url,
+            title: giftId,
+            target: '_blank'
+          }, linkCard.title)) + htmlTag('div', {
+            'class': 'price'
+          }, htmlTag('span', undefined, linkCard.price))))
+        }
       }
     }
   }

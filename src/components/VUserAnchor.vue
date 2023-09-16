@@ -121,7 +121,7 @@ function toUserInfoPage() {
         width: #user-anchor()[avatar-size] + #user-anchor()[avatar-padding];
         position: absolute;
         // background-color: aliceblue;
-        transform: translate(0 - 2 * #user-anchor()[avatar-circle-size] - 2 * #user-anchor()[avatar-padding], 0 - 2 * #user-anchor()[avatar-circle-size] - 2 * #user-anchor()[avatar-padding]);
+        transform: translate(0 - 2 * #user-anchor()[avatar-circle-size] - 4 * #user-anchor()[avatar-padding], 0 - 2 * #user-anchor()[avatar-circle-size] - 4 * #user-anchor()[avatar-padding]);
         border-radius: #border-radius()[circle];
         border: #user-anchor()[avatar-circle-size] solid #dark-user-anchor()[avatar-border-color];
       }

@@ -1,6 +1,7 @@
 import type { Dict } from "@/constants/TDict";
 import { notify } from './notification'
 import { isString } from "@vue/shared"
+import { HoyolabParentForum, type NumberId } from "@/constants/Api";
 
 export function toPascalCase(val: string): string {
   return val.replace(/(^\w|-\w)/g, (c: string) => {

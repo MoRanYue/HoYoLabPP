@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useUserStore } from '@/stores/user';
-import { useRoute } from 'vue-router';
-import { ref, watch, type Ref, onMounted } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
+import { ref, watch, type Ref, onMounted, computed } from 'vue';
 import { toValue, useElementVisibility } from '@vueuse/core';
 import { AwesomeQR } from 'awesome-qr'
 import { notify } from '@/utils/notification'
@@ -15,7 +15,9 @@ import {
   getFingerprint, 
   loginHoyolabByPassword, 
   generateHoyolabQrcode,
-  checkHoyolabQrcodeStatus
+  checkHoyolabQrcodeStatus,
+unfollowUser,
+followUser
 } from '@/api/interfaces';
 import VTextInput from '@/components/VTextInput.vue';
 import VIcon from '@/components/VIcon.vue';
@@ -23,11 +25,12 @@ import VButton from '@/components/VButton.vue';
 import VTab from '@/components/VTab.vue';
 import VTabItem from '@/components/VTabItem.vue';
 import VDataShow from '@/components/VDataShow.vue';
-import type { NumberId } from '@/constants/Api';
+import { HoyolabApiReturnCode, hoyolabParentForum, type NumberId } from '@/constants/Api';
 import { cookieToDict, formatTime, randomChar } from '@/utils/utils';
 import type { Dict } from '@/constants/TDict';
 
 const route = useRoute()
+const router = useRouter()
 const user = useUserStore()
 
 let needLogin = ref(true)
@@ -225,14 +228,86 @@ const userData: Ref<{
   userId: NumberId
   avatar: string
   introduce: string
+  status: {
+    followedMe: boolean
+    following: boolean
+  }
+  forumLevel: {
+    gameId: NumberId
+    level: number
+    exp: number
+  }[]
+  data: {
+    like: number
+    post: number
+    replyPost: number
+    following: number
+    fans: number
+    topic: number
+    essencePost: number
+  }
 }> = ref({
   nickname: '',
   userId: '',
   avatar: '',
-  introduce: ''
+  introduce: '',
+  status: {
+    followedMe: false,
+    following: false
+  },
+  forumLevel: [],
+  data: {
+    like: 0,
+    post: 0,
+    replyPost: 0,
+    following: 0,
+    fans: 0,
+    topic: 0,
+    essencePost: 0
+  }
 })
 
-onMounted(async () => {
+const followRelation = computed((): 'nothing' | 'followedIt' | 'followedMe' | 'followEachOther' => {
+  const data = toValue(userData).status
+
+  if (data.following) {
+    if (data.followedMe) {
+      return 'followEachOther'
+    }
+    else {
+      return 'followedIt'
+    }
+  }
+  else if (data.followedMe) {
+    return 'followedMe'
+  }
+  else {
+    return 'nothing'
+  }
+})
+// let followRelation: Ref<'nothing' | 'followedIt' | 'followedMe' | 'followEachOther'> = ref('nothing')
+// function setFollowRelation() {
+//   const data = toValue(userData).status
+
+//   if (data.following) {
+//     if (data.followedMe) {
+//       followRelation.value = 'followEachOther'
+//     }
+//     else {
+//       followRelation.value = 'followedIt'
+//     }
+//   }
+//   else if (data.followedMe) {
+//     followRelation.value = 'followedMe'
+//   }
+//   else {
+//     followRelation.value = 'nothing'
+//   }
+
+//   console.log(followRelation.value)
+// }
+
+async function viewUser() {
   const specialUserId = route.params.userId
   let userDataRes: Dict
   if (specialUserId) {
@@ -251,11 +326,54 @@ onMounted(async () => {
   userData.value.avatar = info.avatar_url
   userData.value.userId = info.uid
   userData.value.introduce = info.introduce
-})
+  userData.value.forumLevel = []
+  info.level_exps.forEach(level => {
+    userData.value.forumLevel.push({
+      gameId: level.game_id,
+      level: level.level,
+      exp: level.exp
+    })
+  });
+
+  if (userDataRes.data.follow_relation) {
+    userData.value.status.followedMe = userDataRes.data.follow_relation.is_followed
+    userData.value.status.following = userDataRes.data.follow_relation.is_following
+  }
+
+  const userStats = info.achieve
+  userData.value.data.like = userStats.like_num
+  userData.value.data.post = userStats.post_num
+  userData.value.data.following = userStats.follow_cnt
+  userData.value.data.fans = userStats.followed_cnt
+  userData.value.data.topic = userStats.topic_cnt
+  userData.value.data.essencePost = userStats.good_post_num
+  userData.value.data.replyPost = userStats.replypost_num
+}
+watch(() => route.params, viewUser)
+onMounted(viewUser)
 
 const hideSensitiveInfo = ref(true)
 function toggleSensitiveInfo() {
   hideSensitiveInfo.value = !toValue(hideSensitiveInfo)
+}
+
+async function followOrUnfollowUser(wantToUnfollow: boolean = false) {
+  const userId = toValue(userData).userId
+
+  if (wantToUnfollow) {
+    const res = await unfollowUser(userId, 'web', user.chooseLtoken(), user.accountId, user.mihoyoId)
+    if (res.retcode == HoyolabApiReturnCode.success) {
+      userData.value.status.following = false
+      // setFollowRelation()
+    }
+  }
+  else {
+    const res = await followUser(userId, 'web', user.chooseLtoken(), user.accountId, user.mihoyoId)
+    if (res.retcode == HoyolabApiReturnCode.success) {
+      userData.value.status.following = true
+      // setFollowRelation()
+    }
+  }
 }
 
 function logout() {
@@ -325,6 +443,66 @@ function logout() {
       </div>
     </div>
 
+    <div class="stats">
+      <ul>
+        <li class="like">
+          <v-icon type="like" size="20" theme="outline"></v-icon>
+          <span>获得点赞</span>
+          <span>{{ userData.data.like }}</span>
+        </li>
+        <li class="following">
+          <v-icon type="rss" size="20" theme="outline"></v-icon>
+          <span>关注</span>
+          <span>{{ userData.data.following }}</span>
+        </li>
+        <li class="fans">
+          <v-icon type="aiming" size="20" theme="outline"></v-icon>
+          <span>粉丝</span>
+          <span>{{ userData.data.fans }}</span>
+        </li>
+        <li class="post">
+          <v-icon type="upload" size="20" theme="outline"></v-icon>
+          <span>发布文章</span>
+          <span>{{ userData.data.post }}</span>
+        </li>
+        <li class="reply-post">
+          <v-icon type="share-two" size="20" theme="outline"></v-icon>
+          <span>转发文章</span>
+          <span>{{ userData.data.replyPost }}</span>
+        </li>
+        <li class="essence-post">
+          <v-icon type="sunny" size="20" theme="outline"></v-icon>
+          <span>精华文章</span>
+          <span>{{ userData.data.essencePost }}</span>
+        </li>
+        <li class="topic">
+          <v-icon type="comment" size="20" theme="outline"></v-icon>
+          <span>创建话题</span>
+          <span>{{ userData.data.topic }}</span>
+        </li>
+      </ul>
+    </div>
+
+    <div class="operation" v-if="user.loggedIn && user.accountId != userData.userId">
+      <v-button type="primary" icon="rss" :icon-theme="['followedIt', 'followEachOther'].includes(followRelation) ? 'filled' : 'outline'" 
+      @click="followOrUnfollowUser(userData.status.following)">{{ followRelation == 'followedIt' ? '取消关注' : 
+      followRelation == 'followEachOther' ? '互相关注' : '关注' }}</v-button>
+    </div>
+
+    <div class="forum-level" v-if="userData.forumLevel">
+      <ul>
+        <li v-for="forumLevel in userData.forumLevel" :key="forumLevel.gameId">
+          <div class="forum">
+            <span>{{ hoyolabParentForum[Number(forumLevel.gameId)] }}</span>
+          </div>
+          <div class="data">
+            <span class="level">{{ forumLevel.level }}</span>
+            <span class="exp">{{ forumLevel.exp }}</span>
+          </div>
+        </li>
+      </ul>
+    </div>
+
     <div class="sensitive-info" v-if="userData.userId == user.accountId">
       <div class="operation">
         <v-button type="primary" icon="personal-privacy" @click="toggleSensitiveInfo">切换敏感信息</v-button>
@@ -368,8 +546,10 @@ function logout() {
 #user() {
   details-padding: 3em;
   sensitive-padding: 1em;
+  forum-level-padding: 0.8em;
   details-interval: 1.5em;
   sensitive-interval: 1em;
+  forum-level-interval: 1.1em;
   section-radius: #border-radius()[large-x];
   avatar-size: 9em;
   avatar-padding: 0.3em;
@@ -382,6 +562,21 @@ function logout() {
   sensitive-list-interval: 0.5em;
   sensitive-item-interval: 0.5em;
   operation-btn-interval: 0.4em;
+  forum-level-data-padding: 0.3em 0.4em;
+  forum-level-forum-padding: 0.4em 0.5em;
+  forum-level-item-radius: #border-radius()[medium];
+  forum-level-forum-font-size: 1.1rem;
+  forum-level-level-font-size: 1.15rem;
+  forum-level-exp-font-size: 0.95rem;
+  forum-level-item-interval: 0.7em;
+  forum-level-item-min-width: 13em;
+  operation-interval: 0.3em;
+  stats-interval: 0.4em;
+  stats-item-radius: #border-radius()[medium];
+  stats-item-padding: 0.3em 0.5em;
+  stats-item-interval: 0.5em;
+  stats-icon-interval: 0.4em;
+  stats-data-font-size: 1.5rem;
 }
 #dark-user() {
   details-bg-color: lighten(#dark()[primary], 8%);
@@ -390,6 +585,11 @@ function logout() {
   nickname-color: lighten(#dark-text()[important], 8%);
   introduce-bg-color: lighten(#dark()[secondary], 13%);
   sensitive-bg-color: darken(#dark()[primary], 4%);
+  forum-level-bg-color: lighten(#dark()[primary], 15%);
+  forum-level-item-bg-color: lighten(#dark()[primary], 6%);
+  forum-level-forum-bg-color: lighten(#dark()[secondary], 25%);
+  stats-item-bg-color: lighten(#dark()[primary], 10%);
+  stats-data-text-color: lighten(#dark-text()[important], 16%);
 }
 
 .user {
@@ -423,7 +623,7 @@ function logout() {
         // background-color: #dark-user()[avatar-bg-color];
         border: #user()[avatar-circle-size] solid #dark-user()[avatar-circle-color];
         border-radius: #border-radius()[circle];
-        transform: translate(0 - 2 * #user()[avatar-circle-size] - 0 * #user()[avatar-padding], 0 - 2 * #user()[avatar-circle-size] - 0 * #user()[avatar-padding]);
+        transform: translate(0 - 2 * #user()[avatar-circle-size] + 2 * #user()[avatar-padding], 0 - 2 * #user()[avatar-circle-size] + 2 * #user()[avatar-padding]);
       }
 
       img {
@@ -448,6 +648,97 @@ function logout() {
         background-color: #dark-user()[introduce-bg-color];
         border-radius: #user()[introduce-radius];
         margin-top: #user()[introduce-interval];
+      }
+    }
+  }
+
+  > .stats {
+    margin-top: #user()[stats-interval];
+
+    > ul {
+      list-style: none;
+      display: flex;
+      flex-direction: row;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: #user()[stats-item-interval];
+
+      > li {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        border-radius: #user()[stats-item-radius];
+        background-color: #dark-user()[stats-item-bg-color];
+        display: flex;
+        flex-direction: row;
+        flex-wrap: nowrap;
+        padding: #user()[stats-item-padding];
+
+        .icon-container {
+          margin-right: #user()[stats-icon-interval];
+        }
+
+        > span:nth-child(3) {
+          color: #dark-user()[stats-data-text-color];
+          font-size: #user()[stats-data-font-size];
+        }
+      }
+    }
+  }
+
+  > .operation {
+    margin-top: #user()[operation-interval];
+    display: flex;
+    justify-content: center;
+  }
+
+  > .forum-level {
+    margin-top: #user()[forum-level-interval];
+    padding: #user()[forum-level-padding];
+    background-color: #dark-user()[forum-level-bg-color];
+
+    > ul {
+      list-style: none;
+      display: flex;
+      flex-wrap: wrap;
+      gap: #user()[forum-level-item-interval];
+
+      > li {
+        border-radius: #user()[forum-level-item-radius];
+        display: flex;
+        flex-direction: row;
+        flex-wrap: nowrap;
+        align-items: stretch;
+        overflow: hidden;
+        // margin-right: #user()[forum-level-item-interval];
+        // margin-bottom: #user()[forum-level-item-interval];
+        min-width: #user()[forum-level-item-min-width];
+        background-color: #dark-user()[forum-level-item-bg-color];
+
+        .forum {
+          font-size: #user()[forum-level-forum-font-size];
+          padding: #user()[forum-level-forum-padding];
+          background-color: #dark-user()[forum-level-forum-bg-color];
+          display: flex;
+          align-items: center;
+          border-radius: #user()[forum-level-item-radius];
+        }
+
+        .data {
+          flex-grow: 1;
+          padding: #user()[forum-level-data-padding];
+          display: flex;
+          flex-direction: column;
+
+          .level {
+            font-weight: 600;
+            font-size: #user()[forum-level-level-font-size];
+          }
+
+          .exp {
+            font-size: #user()[forum-level-exp-font-size];
+          }
+        }
       }
     }
   }
@@ -484,13 +775,14 @@ function logout() {
       flex-wrap: wrap;
       list-style: none;
       margin-top: #user()[sensitive-list-interval];
+      gap: #user()[sensitive-item-interval];
 
       > li {
         width: 17.5em;
         height: 10em;
 
-        margin-right: #user()[sensitive-item-interval];
-        margin-bottom: #user()[sensitive-item-interval];
+        // margin-right: #user()[sensitive-item-interval];
+        // margin-bottom: #user()[sensitive-item-interval];
 
         .data-show {
           width: 100%;

@@ -243,6 +243,18 @@ export async function userInfo(userId: NumberId, type: InterfaceType, token?: st
     gids: 2
   }, undefined, undefined, data.cookies)
 }
+export async function followUser(userId: NumberId, type: InterfaceType, token: string, accountId: NumberId, mihoyoId: string) {
+  const data = await setupData(type, '', 'https://bbs-api.miyoushe.com/timeline/wapi/follow', token, accountId, mihoyoId)
+  return await requestMihoyo('post', data.url, undefined, undefined, undefined, undefined, {
+    entity_id: String(userId)
+  }, undefined, data.cookies)
+}
+export async function unfollowUser(userId: NumberId, type: InterfaceType, token: string, accountId: NumberId, mihoyoId: string) {
+  const data = await setupData(type, '', 'https://bbs-api.miyoushe.com/timeline/wapi/unfollow', token, accountId, mihoyoId)
+  return await requestMihoyo('post', data.url, undefined, undefined, undefined, undefined, {
+    entity_id: String(userId)
+  }, undefined, data.cookies)
+}
 
 // export async function verifyLtoken(ltoken: string, accountId?: NumberId, mihoyoId?: string) {
   

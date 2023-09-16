@@ -1,8 +1,38 @@
+#animation() {
+
+}
+#dark-animation() {
+  border-flow-color: darken(#dark()[sub], 10%);
+}
+
 @keyframes opacityChanging {
   from {
     opacity: 0;
   }
   to {
     opacity: 1;
+  }
+}
+
+@keyframes borderFlow {
+  0% {
+    border-left-color: #dark-animation()[border-flow-color];
+    border-top-color: #dark-animation()[border-flow-color];
+  }
+  25% {
+    border-top-color: transparent;
+    border-right-color: #dark-animation()[border-flow-color];
+  }
+  50% {
+    border-right-color: transparent;
+    border-bottom-color: #dark-animation()[border-flow-color];
+  }
+  75% {
+    border-bottom-color: transparent;
+    border-left-color: #dark-animation()[border-flow-color];
+  }
+  100% {
+    border-left-color: transparent;
+    border-top-color: #dark-animation()[border-flow-color];
   }
 }
