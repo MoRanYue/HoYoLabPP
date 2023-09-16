@@ -33,10 +33,12 @@ const route = useRoute()
 const router = useRouter()
 const user = useUserStore()
 
-let needLogin = ref(true)
-if (user.loggedIn) {
-  needLogin.value = false
-}
+const needLogin = ref(user.loggedIn)
+watch(needLogin, needLogin => {
+  if (needLogin && !toValue(userData).userId) {
+    viewUser()
+  }
+})
 
 const loginMethods = [
   {text: '米哈游通行证密码登录（Login Ticket）', value: 'mihoyoPassword'},

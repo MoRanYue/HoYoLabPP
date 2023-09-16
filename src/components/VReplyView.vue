@@ -60,6 +60,7 @@ async function appendReply() {
     const subReplyCount = toValue(subReply).length
     const lastReplyIdHeader = toValue(subReply)[subReplyCount - 1].reply.reply_id.slice(0, 11)
     lastReplyId = lastReplyIdHeader + String(parseInt(toValue(subReply)[subReplyCount - 1].reply.reply_id.slice(11)) + 1)
+    console.log(lastReplyId)
   }
   
   const subReplyData = (await subReplyInfo(props.postId, props.floor, 20, lastReplyId, 'web', user.chooseLtoken(), user.accountId, user.mihoyoId)).data.list
