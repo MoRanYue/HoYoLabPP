@@ -26,3 +26,22 @@ export const hoyolabParentForum: Record<HoyolabParentForum & number, keyof typeo
   6: '崩坏：星穹铁道',
   8: '绝区零'
 }
+
+export enum RecordGameId {
+  genshinImpact,
+  honkaiStarRail,
+  honkai3,
+}
+
+export enum GenshinImpactRegion {
+  cn_gf01,
+  cn_qd01
+}
+export enum HonkaiStarRailRegion {
+  prod_gf_cn,
+  prod_qd_cn
+}
+export enum Honkai3Region {
+  pc01
+}
+export type GameAccountRegion = keyof typeof GenshinImpactRegion | keyof typeof HonkaiStarRailRegion | keyof typeof Honkai3Region

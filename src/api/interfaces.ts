@@ -1,7 +1,7 @@
 import type { Dict } from "@/constants/TDict";
 import { requestMihoyo } from "./dynamicSignProcessor";
 import jsEncrypt from 'jsencrypt'
-import type { InterfaceType, NumberId } from "@/constants/Api";
+import type { GameAccountRegion, GenshinImpactRegion, InterfaceType, NumberId } from "@/constants/Api";
 import { getNowTime, randomChar, randomMinZero, randomRange, randomUuid4 } from "@/utils/utils";
 
 const appId = {
@@ -104,6 +104,11 @@ export enum ForumArticleOrderType {
   essence,
   newest,
   newestReply,
+}
+
+export enum GenshinImpactSpiralAbyssSessionType {
+  current = 1,
+  last = 2
 }
 
 export async function articleInfo(id: NumberId, type: InterfaceType, token?: string, accountId?: NumberId, mihoyoId?: string) {
@@ -417,4 +422,29 @@ export async function hoyolabVerifyVerification(challenge: string, validate: str
     geetest_validate: validate,
     geetest_seccode: seccode
   }, undefined, await constructStoken(stoken, accountId, mihoyoId))
+}
+
+export async function gameRecordCard(userId: NumberId, stoken: string, accountId: NumberId, mihoyoId: string) {
+  return await requestMihoyo('get', 'https://api-takumi-record.mihoyo.com/game_record/card/api/getGameRecordCard', 1, 2, 'k2', {
+    uid: userId
+  }, undefined, undefined, await constructStoken(stoken, accountId, mihoyoId))
+}
+export async function genshinImpactAccountMainInfo(gameAccountId: NumberId, accountRegion: keyof typeof GenshinImpactRegion, ltoken: string, accountId: NumberId, mihoyoId: string) {
+  return await requestMihoyo('get', 'https://api-takumi-record.mihoyo.com/game_record/app/genshin/api/index', 2, 5, '4x', {
+    server: accountRegion,
+    role_id: gameAccountId
+  }, undefined, undefined, await constructLtoken(ltoken, accountId, mihoyoId))
+}
+export async function genshinImpactAccountCharacterInfo(gameAccountId: NumberId, accountRegion: keyof typeof GenshinImpactRegion, ltoken: string, accountId: NumberId, mihoyoId: string) {
+  return await requestMihoyo('post', 'https://api-takumi-record.mihoyo.com/game_record/app/genshin/api/character', 2, 5, '4x', {
+    server: accountRegion,
+    role_id: gameAccountId
+  }, undefined, undefined, await constructLtoken(ltoken, accountId, mihoyoId))
+}
+export async function genshinImpactAccountSpiralAbyssInfo(gameAccountId: NumberId, accountRegion: keyof typeof GenshinImpactRegion, sessionType: GenshinImpactSpiralAbyssSessionType, ltoken: string, accountId: NumberId, mihoyoId: string) {
+  return await requestMihoyo('get', 'https://api-takumi-record.mihoyo.com/game_record/app/genshin/api/spiralAbyss', 2, 5, '4x', {
+    server: accountRegion,
+    role_id: gameAccountId,
+    schedule_type: sessionType
+  }, undefined, undefined, await constructLtoken(ltoken, accountId, mihoyoId))
 }

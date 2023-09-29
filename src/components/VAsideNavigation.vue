@@ -20,7 +20,7 @@ const navigation = ref<HTMLElement>()
 const draggingZone = ref<HTMLElement>()
 
 const { isOutside: isNotInDraggingZone } = useMouseInElement(draggingZone, {
-  touch: true
+  touch: true,
 })
 
 const { x, y, style, isDragging } = useDraggable(navigation, {

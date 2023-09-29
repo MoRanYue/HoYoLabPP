@@ -10,6 +10,14 @@
   weight: 2px;
   radius: #border-radius()[large-x];
 }
+#dark-link() {
+  color: lighten(#dark-text()[important], 4%);
+  hover-color: lighten(#dark-text()[important], 10%);
+  active-color: lighten(#dark-text()[important], 6%);
+}
+#link() {
+  transition-time: 0.17s;
+}
 
 body {
   background-color: #dark-main()[bg-color];
@@ -18,6 +26,18 @@ body {
 
 p {
   color: #dark-text()[color];
+}
+
+a {
+  color: #dark-link()[color];
+  transition-duration: #link()[transition-time];
+
+  &:hover {
+    color: #dark-link()[hover-color];
+  }
+  &:active {
+    color: #dark-link()[active-color];
+  }
 }
 
 hr {

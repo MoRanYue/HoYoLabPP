@@ -210,7 +210,6 @@ async function viewPost(postId: string) {
     liked: post.self_operation.attitude == 1,
     collected: post.self_operation.is_collected
   }
-  console.log(currentArticle.value.status)
 }
 
 if (route.params.postId) {
@@ -418,10 +417,10 @@ onMounted(() => {
   .recommended-posts {
     > ul {
       list-style: none;
-      width: 100%;
-      // > li {
-      //   width: 100%;
-      // }
+
+      > li {
+        width: 100%;
+      }
     }
   }
 

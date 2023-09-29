@@ -73,17 +73,15 @@ export async function processStructContent(data: string | StructContent[]) {
           }
         }
 
-        if (!parsed) {
+        if (parsed) {
+          content += char
+        }
+        else {
           pos -= advanced
           char = part.insert[pos]
           content += char
-          advance()
         }
-        else {
-          content += char
-          advance()
-        }
-
+        advance()
         advanced = 0
       }
 
@@ -110,7 +108,8 @@ export async function processStructContent(data: string | StructContent[]) {
         if (attrs.link) {
           str += htmlTag('a', {
             style,
-            href: attrs.link
+            href: attrs.link,
+            target: '_blank'
           }, content)
         }
         else {

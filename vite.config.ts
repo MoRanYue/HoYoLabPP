@@ -19,7 +19,7 @@ export default defineConfig({
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),
       'vue': 'vue/dist/vue.esm-bundler.js'
-    }
+    },
   },
   css: {
     postcss: {
@@ -41,5 +41,14 @@ export default defineConfig({
         javascriptEnabled: true,
       },
     },
+  },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'router-view': ['./src/views/Article', './src/views/Home', './src/views/NotFound', './src/views/User']
+        }
+      }
+    }
   }
 })

@@ -33,7 +33,7 @@ const route = useRoute()
 const router = useRouter()
 const user = useUserStore()
 
-const needLogin = ref(user.loggedIn)
+const needLogin = ref(!user.loggedIn)
 watch(needLogin, needLogin => {
   if (needLogin && !toValue(userData).userId) {
     viewUser()
@@ -387,7 +387,7 @@ function logout() {
 </script>
 
 <template>
-  <section class="login" v-if="needLogin && !route.params.userId">
+  <div class="login" v-if="needLogin && !route.params.userId">
     <div class="login-container">
       <h1>登录</h1>
 
@@ -426,9 +426,9 @@ function logout() {
         </v-tab-item>
       </v-tab>
     </div>
-  </section>
+  </div>
 
-  <section class="user" v-else>
+  <div class="user" v-else>
     <div class="operation" v-if="user.loggedIn">
 
     </div>
@@ -523,7 +523,7 @@ function logout() {
         <li><v-data-show desc="Cookie Token（临时）" :data="user.cookieToken || '未获取'" :allow-operation="Boolean(user.cookieToken)" :blur="hideSensitiveInfo"></v-data-show></li>
       </ul>
     </div>
-  </section>
+  </div>
 </template>
 
 <style scoped lang="less">
