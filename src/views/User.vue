@@ -99,7 +99,6 @@ async function loginByPasswordThroughMihoyo() {
 
 async function loginByPasswordThroughHoyolab() {
   const accountInfo = await loginHoyolabByPassword(toValue(accountName), toValue(password))
-  console.log(accountInfo)
 }
 
 const qrcodeCreativeTime = ref<number>()
@@ -147,7 +146,7 @@ async function loginByQrcodeThroughHoyolab() {
 
     const status = qrcodeStatus.data.status
     if (status == 'Created') {
-      notify('已创建', '二维码状态')
+      // notify('已创建', '二维码状态')
     }
     else if (status == 'Scanned') {
       if (!toValue(qrcodeScannedTime)) {

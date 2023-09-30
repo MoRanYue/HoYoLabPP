@@ -26,7 +26,6 @@ export function notify(content: string, title?: string, type: keyof typeof Notif
     type,
     id
   })
-  console.log('create notify', id, content)
 
   setTimeout(() => {
     removeNotification(id)
@@ -37,7 +36,6 @@ export function removeNotification(id: string) {
   notifications.notifications.forEach((notification, i) => {
     if (notification.id == id) {
       notifications.notifications.splice(i, 1)
-      console.log('close notify', id)
       return
     }
   });
