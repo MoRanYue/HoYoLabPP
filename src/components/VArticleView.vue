@@ -17,7 +17,6 @@ import type { Dict } from '@/constants/TDict';
 import { HoyolabApiReturnCode, type NumberId } from '@/constants/Api';
 import type { UserAnchorInfo } from '@/constants/IUserAnchorInfo';
 import type { StructContent } from '@/constants/IStructContent';
-import { type } from 'os';
 
 const props = withDefaults(defineProps<{
   title: string,

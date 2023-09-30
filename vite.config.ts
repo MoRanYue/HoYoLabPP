@@ -46,7 +46,7 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks: {
-          'router-view': ['./src/views/Article', './src/views/Home', './src/views/NotFound', './src/views/User']
+          'router-view': ['./src/views/Article.vue', './src/views/Home.vue', './src/views/NotFound.vue', './src/views/User.vue', './src/views/GameRecord.vue']
         }
       }
     }
