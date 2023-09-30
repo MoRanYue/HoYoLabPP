@@ -39,7 +39,7 @@ const rules: string[] = [
         </div>
       </v-card>
 
-      <v-card title="类似项目" icon="experiment">
+      <v-card title="类似项目" icon="experiment" v-show="false">
         <v-tab class="similar-project-tab" :selection="0" :titles="[
           {text: 'Snap Hutao', value: 'snapHutao'},
           {text: 'Teyvat Guide', value: 'teyvatGuide'},
