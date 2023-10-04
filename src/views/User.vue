@@ -20,7 +20,6 @@ unfollowUser,
 followUser,
 generateGenshinImpactQrcode,
 checkGenshinImpactQrcodeStatus,
-getStokenV1ByGameToken,
 getHoyolabCookieTokenByGameToken,
 getLtokenV1ByStoken,
 getStokenV2ByGameToken
