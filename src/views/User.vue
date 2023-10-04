@@ -17,7 +17,13 @@ import {
   generateHoyolabQrcode,
   checkHoyolabQrcodeStatus,
 unfollowUser,
-followUser
+followUser,
+generateGenshinImpactQrcode,
+checkGenshinImpactQrcodeStatus,
+getStokenV1ByGameToken,
+getHoyolabCookieTokenByGameToken,
+getLtokenV1ByStoken,
+getStokenV2ByGameToken
 } from '@/api/interfaces';
 import VTextInput from '@/components/VTextInput.vue';
 import VIcon from '@/components/VIcon.vue';
@@ -65,6 +71,12 @@ watch(isTimeToGenerateHoyolabQrcode, (needGenerate) => {
     loginByQrcodeThroughHoyolab()
   }
 })
+const isTimeToGenerateGenshinQrcode = useElementVisibility(genshinQrcode)
+watch(isTimeToGenerateGenshinQrcode, (needGenerate) => {
+  if (needGenerate) {
+    loginByQrcodeThroughGenshinImpact()
+  }
+})
 
 // verificationCode.value.isVerifing = true
 const isDestroyingRequest = ref(false)
@@ -107,7 +119,7 @@ async function loginByQrcodeThroughHoyolab() {
   const deviceId = randomChar(8)
 
   const qrcodeInfo = await generateHoyolabQrcode(deviceId)
-  if (qrcodeInfo.retcode != 0) {
+  if (qrcodeInfo.retcode != HoyolabApiReturnCode.success) {
     notify(`${qrcodeInfo.retcode}：${qrcodeInfo.message}`, '创建二维码失败', 'error')
     return
   }
@@ -135,10 +147,10 @@ async function loginByQrcodeThroughHoyolab() {
       return
     }
 
-    if (qrcodeStatus.retcode != 0) {
+    if (qrcodeStatus.retcode != HoyolabApiReturnCode.success) {
       qrcodeCreativeTime.value = undefined
       qrcodeScannedTime.value = undefined
-      hoyolabQrcode.value.src = ''
+      hoyolabQrcode.value!.src = ''
 
       clearInterval(timer)
       return await loginByQrcodeThroughHoyolab()
@@ -173,6 +185,93 @@ async function loginByQrcodeThroughHoyolab() {
       user.ltoken.v2 = tokens.ltoken_v2
 
       notify('登录成功', '二维码状态', 'success')
+
+      needLogin.value = false
+
+      return
+    }
+
+  }, 1500)
+}
+async function loginByQrcodeThroughGenshinImpact() {
+  const deviceId = randomChar(8)
+
+  const qrcodeInfo = await generateGenshinImpactQrcode(deviceId)
+  if (qrcodeInfo.retcode != HoyolabApiReturnCode.success) {
+    return notify(`${qrcodeInfo.retcode}：${qrcodeInfo.message}`, '创建二维码失败', 'error')
+  }
+
+  const ticket: string = <string>(new URL(qrcodeInfo.data.url).searchParams.get('ticket'))
+
+  const qrcode = new AwesomeQR({
+    text: qrcodeInfo.data.url,
+  })
+  qrcodeCreativeTime.value = Date.now()
+  qrcode.draw().then(dataUrl => {
+    if (!genshinQrcode.value) {
+      return 
+    }
+
+    genshinQrcode.value.src = <string>dataUrl
+  })
+
+  const timer = setInterval(async () => {
+    const qrcodeStatus = await checkGenshinImpactQrcodeStatus(deviceId, ticket)
+
+    if (toValue(isDestroyingRequest)) {
+      notify('登录已取消', '登录失败', 'failure')
+      clearInterval(timer)
+      return
+    }
+
+    if (qrcodeStatus.retcode != HoyolabApiReturnCode.success) {
+      qrcodeCreativeTime.value = undefined
+      qrcodeScannedTime.value = undefined
+      hoyolabQrcode.value!.src = ''
+
+      clearInterval(timer)
+      return await loginByQrcodeThroughGenshinImpact()
+    }
+
+    const status = qrcodeStatus.data.stat
+    if (status == 'Init') {
+      // notify('已创建', '二维码状态')
+    }
+    else if (status == 'Scanned') {
+      if (!toValue(qrcodeScannedTime)) {
+        qrcodeScannedTime.value = Date.now()
+      }
+      notify('已扫描', '二维码状态')
+    }
+    else if (status == 'Confirmed') {
+      notify('已确认登录', '二维码状态')
+      clearInterval(timer)
+
+      qrcodeCreativeTime.value = undefined
+      qrcodeScannedTime.value = undefined
+
+      const userIdAndGameToken = JSON.parse(qrcodeStatus.data.payload.raw)
+      user.accountId = userIdAndGameToken.uid
+      user.gameToken = userIdAndGameToken.token
+
+      const stokenV2 = await getStokenV2ByGameToken(user.gameToken, user.accountId)
+      user.stoken.v2 = stokenV2.data.token.token
+      user.mihoyoId = stokenV2.data.user_info.mid
+
+      const cookieToken = await getHoyolabCookieTokenByGameToken(user.gameToken, user.accountId)
+      user.cookieToken = cookieToken.data.cookie_token
+
+      // const stokenV2 = await getStokenV2ByStokenV1(user.stoken.v1, user.accountId)
+      // user.stoken.v2 = stokenV2.data.token.token
+
+      const ltokenV1 = await getLtokenV1ByStoken(user.chooseStoken(), user.accountId, user.mihoyoId)
+      user.ltoken.v1 = ltokenV1.data.ltoken
+
+      user.loggedIn = true
+
+      notify('登录成功', '二维码状态', 'success')
+
+      needLogin.value = false
 
       return
     }
@@ -216,6 +315,8 @@ setDeviceFp()
 
 function destroyLoginProcess(_, value: string) {
   isDestroyingRequest.value = true
+  qrcodeCreativeTime.value = undefined
+  qrcodeScannedTime.value = undefined
 
   setTimeout(() => {
     if (toValue(isDestroyingRequest)) {
@@ -413,13 +514,15 @@ function logout() {
             <img class="qrcode" ref="hoyolabQrcode">
             <span v-if="qrcodeCreativeTime">二维码生成于{{ formatTime(new Date(qrcodeCreativeTime)) }}</span>
             <span v-if="qrcodeScannedTime">二维码被扫描于{{ formatTime(new Date(qrcodeScannedTime)) }}</span>
-            <span>该登录方式无法使用米游社自动签到</span>
+            <span>该登录方式无法获取SToken，因此无法对文章进行操作，也无法查看游戏记录</span>
             <span>请使用米游社APP扫描此二维码并确认登录</span>
           </div>
         </v-tab-item>
         <v-tab-item>
           <div class="genshin-qrcode">
             <img class="qrcode" ref="genshinQrcode">
+            <span v-if="qrcodeCreativeTime">二维码生成于{{ formatTime(new Date(qrcodeCreativeTime)) }}</span>
+            <span v-if="qrcodeScannedTime">二维码被扫描于{{ formatTime(new Date(qrcodeScannedTime)) }}</span>
             <span>请使用米游社APP或《原神》扫描此二维码并确认登录</span>
           </div>
         </v-tab-item>

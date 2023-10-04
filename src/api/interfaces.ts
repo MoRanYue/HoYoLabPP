@@ -327,6 +327,20 @@ export async function checkHoyolabQrcodeStatus(deviceId: string, deviceFp: strin
   })
 }
 
+export async function generateGenshinImpactQrcode(deviceId: string) {
+  return await requestMihoyo('post', 'https://hk4e-sdk.mihoyo.com/hk4e_cn/combo/panda/qrcode/fetch', undefined, undefined, undefined, undefined, {
+    app_id: '4',
+    device: deviceId
+  })
+}
+export async function checkGenshinImpactQrcodeStatus(deviceId: string, ticket: string) {
+  return await requestMihoyo('post', 'https://hk4e-sdk.mihoyo.com/hk4e_cn/combo/panda/qrcode/query', undefined, undefined, undefined, undefined, {
+    ticket,
+    app_id: '4',
+    device: deviceId
+  })
+}
+
 export async function getStokenAndLtokenByLoginTicket(loginTicket: string, accountId: NumberId) {
   return await requestMihoyo('get', 'https://api-takumi.mihoyo.com/auth/api/getMultiTokenByLoginTicket', undefined, undefined, undefined, {
     token_types: 3,
@@ -349,6 +363,23 @@ export async function getStokenV2ByStokenV1(stokenV1: string, accountId: NumberI
   }, {
     stoken: stokenV1,
     stuid: accountId
+  })
+}
+export async function getStokenV2ByGameToken(gameToken: string, accountId: NumberId) {
+  return await requestMihoyo('post', 'https://api-takumi.mihoyo.com/account/ma-cn-session/app/getTokenByGameToken', undefined, undefined, undefined, undefined, {
+    account_id: Number(accountId),
+    game_token: gameToken
+  }, {
+    'x-rpc-app_id': appId.hoyolabCn
+  })
+}
+export async function getLtokenV1ByStoken(stoken: string, accountId: NumberId, mihoyoId: string) {
+  return await requestMihoyo('get', 'https://passport-api.mihoyo.com/account/auth/api/getLTokenBySToken', undefined, undefined, undefined, undefined, undefined, undefined, await constructStoken(stoken, accountId, mihoyoId))
+}
+export async function getHoyolabCookieTokenByGameToken(gameToken: string, accountId: NumberId) {
+  return await requestMihoyo('get', 'https://api-takumi.mihoyo.com/auth/api/getCookieAccountInfoByGameToken', undefined, undefined, undefined, {
+    account_id: accountId,
+    game_token: gameToken
   })
 }
 export async function getHoyolabCookieTokenByStoken(stokenV1: string, mihoyoId: string, accountId: NumberId) {
