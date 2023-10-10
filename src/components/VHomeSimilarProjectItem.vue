@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import type { RecordGameId } from '@/constants/Api';
+import type { ProjectLink } from '@/constants/IProjectLink';
+import VHomeSimilarProjectItemLinkItem from './VHomeSimilarProjectItemLinkItem.vue';
 import { computed } from 'vue';
 
 type SpecialGameFunction = Partial<Record<keyof typeof RecordGameId, boolean>>
@@ -14,6 +16,7 @@ const props = withDefaults(defineProps<{
   id: string
   desc: string
   author: string
+  links?: Partial<ProjectLink>
   type: ('ios' | 'android' | 'web' | 'windows' | 'macos' | 'linux' | 'weChatMini')[]
   supportedFunctions: Partial<{
     gameRecord: Partial<{
@@ -36,6 +39,7 @@ const props = withDefaults(defineProps<{
     calendar: Partial<{
       drawingPool: boolean
       activity: boolean
+      material: boolean
     }> & SpecialGameFunction
     planning: Partial<{
       calculated: boolean
@@ -118,10 +122,16 @@ const supportedPlatforms = computed(() => {
     <h4 class="author">{{ props.author }}</h4>
     <span class="desc">{{ props.desc }}</span>
 
+    <div class="links" v-if="props.links">
+      <ul>
+        <v-home-similar-project-item-link-item v-for="(v, k) in props.links" :key="k" :platform="k" :url="v!"></v-home-similar-project-item-link-item>
+      </ul>
+    </div>
+
     <hr>
 
     <div class="functions">
-      {{ props.supportedFunctions }}
+      <!-- {{ props.supportedFunctions }} -->
       <!-- <table border="1">
         <colgroup>
           <col>
@@ -146,6 +156,7 @@ const supportedPlatforms = computed(() => {
   title-interval: 0.2em;
   desc-interval: 1.1em;
   author-font-size: 1.3rem;
+  link-item-interval: 0.45em;
 }
 #dark-home-similar-project-item() {
 
@@ -170,6 +181,20 @@ const supportedPlatforms = computed(() => {
 
   .author {
     font-size: #home-similar-project-item()[author-font-size];
+  }
+
+  .links {
+    > ul {
+      list-style: none;
+      gap: #home-similar-project-item()[link-item-interval];
+      display: flex;
+      flex-direction: row;
+      flex-wrap: wrap;
+
+      > li {
+
+      }
+    }
   }
 
   .desc {

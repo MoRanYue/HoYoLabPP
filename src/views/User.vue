@@ -16,13 +16,13 @@ import {
   loginHoyolabByPassword, 
   generateHoyolabQrcode,
   checkHoyolabQrcodeStatus,
-unfollowUser,
-followUser,
-generateGenshinImpactQrcode,
-checkGenshinImpactQrcodeStatus,
-getHoyolabCookieTokenByGameToken,
-getLtokenV1ByStoken,
-getStokenV2ByGameToken
+  unfollowUser,
+  followUser,
+  generateGenshinImpactQrcode,
+  checkGenshinImpactQrcodeStatus,
+  getHoyolabCookieTokenByGameToken,
+  getLtokenV1ByStoken,
+  getStokenV2ByGameToken
 } from '@/api/interfaces';
 import VTextInput from '@/components/VTextInput.vue';
 import VIcon from '@/components/VIcon.vue';
@@ -40,7 +40,7 @@ const user = useUserStore()
 
 const needLogin = ref(!user.loggedIn)
 watch(needLogin, needLogin => {
-  if (needLogin && !toValue(userData).userId) {
+  if (!needLogin && !toValue(userData).userId) {
     viewUser()
   }
 })
@@ -90,8 +90,7 @@ async function loginByPasswordThroughMihoyo() {
     return
   }
   if (mmtInfo.data.mmt_type == 1) {
-    notify('需要通过验证码', '登录失败', 'error')
-    return
+    
   }
 
   const mmtKey = mmtInfo.data.mmt_data.mmt_key
@@ -101,6 +100,10 @@ async function loginByPasswordThroughMihoyo() {
   
   if (accountInfo.code != 200) {
     notify(`${accountInfo.code}：${accountInfo.message}`, '登录失败', 'error')
+    return
+  }
+  if (accountInfo.data.status != 1) {
+    notify(`${accountInfo.data.status}：${accountInfo.data.msg}`, '登录失败', 'error')
     return
   }
 
@@ -163,7 +166,7 @@ async function loginByQrcodeThroughHoyolab() {
       if (!toValue(qrcodeScannedTime)) {
         qrcodeScannedTime.value = Date.now()
       }
-      notify('已扫描', '二维码状态')
+      // notify('已扫描', '二维码状态')
     }
     else if (status == 'Confirmed') {
       notify('已确认登录', '二维码状态')
@@ -240,7 +243,7 @@ async function loginByQrcodeThroughGenshinImpact() {
       if (!toValue(qrcodeScannedTime)) {
         qrcodeScannedTime.value = Date.now()
       }
-      notify('已扫描', '二维码状态')
+      // notify('已扫描', '二维码状态')
     }
     else if (status == 'Confirmed') {
       notify('已确认登录', '二维码状态')
@@ -312,7 +315,7 @@ function setDeviceFp() {
 }
 setDeviceFp()
 
-function destroyLoginProcess(_, value: string) {
+function destroyLoginProcess() {
   isDestroyingRequest.value = true
   qrcodeCreativeTime.value = undefined
   qrcodeScannedTime.value = undefined
@@ -323,6 +326,7 @@ function destroyLoginProcess(_, value: string) {
     }
   }, 1700)
 }
+router.afterEach(() => destroyLoginProcess())
 
 const userData: Ref<{
   nickname: string
@@ -413,6 +417,9 @@ async function viewUser() {
   let userDataRes: Dict
   if (specialUserId) {
     userDataRes = await userInfo(specialUserId, 'web', user.chooseLtoken(), user.accountId, user.mihoyoId)
+  }
+  else if (!user.loggedIn) {
+
   }
   else {
     userDataRes = await userInfo(user.accountId, 'web', user.chooseLtoken(), user.accountId, user.mihoyoId)
