@@ -54,9 +54,9 @@ async function autoStart() {
 
         emits('finish')
       })
-    }).onError(err => {
-      notify(`验证错误：${err}`, '验证码', 'error')
-      emits('error', err)
+    }).onError((err) => {
+      notify(`验证错误：${err.msg}`, '验证码', 'error')
+      emits('error', err.msg)
       emits('finish')
     })
   })

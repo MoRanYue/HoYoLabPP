@@ -55,6 +55,7 @@ const rules: string[] = [
             :type="['windows']" 
             :links="{
               gitHub: 'https://github.com/DGP-Studio/Snap.Hutao',
+              appStore: 'https://apps.microsoft.com/detail/snap-hutao/9PH4NXJ2JN52',
               officalWebsite: 'https://hut.ao/zh'
             }" 
             :supported-functions="{
