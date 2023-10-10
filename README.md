@@ -42,6 +42,30 @@
   - [ ] 素材消耗计算器
   - [ ] 计划
 
+## 构建
+
+该仓库为HoYoLabPP的前端源代码。如果你在找后端源代码，请点击[此处](https://github.com/Kamisato-Ayaka-233/HoYoLabPP.Backend)。
+
+本项目使用Vite进行构建，因此该处仅给出Vite的构建方式。
+
+1. 拉取源代码
+```sh
+git clone https://github.com/Kamisato-Ayaka-233/HoYoLabPP.git
+cd HoYoLabPP
+```
+
+2. 下载依赖项
+```sh
+npm install
+```
+
+3. 构建项目到`dist`文件夹
+
+不进行类型检查的原因：因为许多米游社的接口返回数据并未编写结构，因此如果进行类型检查会导致出错。
+```sh
+npm run build-only
+```
+
 ## 贡献者
 
 - [MoRanYue（Kamisato-Ayaka-233）](https://github.com/Kamisato-Ayaka-233)
