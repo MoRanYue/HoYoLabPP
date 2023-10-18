@@ -47,6 +47,17 @@ export function randomChar(length: number, collection: string = 'ABCDEFGHIJKLMNO
   return str
 }
 
+export function toPercentStr(num: number) {
+  let numStr: string = String(num * 100)
+  if (numStr.includes('.')) {
+    const parts = numStr.split('.', 2)
+    if (parts[1].length > 2) {
+      numStr = numStr.slice(undefined, numStr.length - parts[1].length + 2)
+    }
+  }
+  return `${numStr}%`
+}
+
 export function randomUuid4() {
   let str: string = ''
   for (let i = 0; i < 4; i++) {

@@ -64,7 +64,7 @@ export async function richText(text: string) {
                 }, inner)
               }
               else {
-                // str += inner
+                str += `<unknown tag ${key}>`
                 parsed = false
               }
             }
