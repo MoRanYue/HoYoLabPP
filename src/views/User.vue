@@ -328,7 +328,8 @@ function destroyLoginProcess() {
 }
 router.afterEach(() => destroyLoginProcess())
 
-const userData: Ref<{
+const userData = ref<{
+  ready: boolean
   nickname: string
   userId: NumberId
   avatar: string
@@ -351,26 +352,7 @@ const userData: Ref<{
     topic: number
     essencePost: number
   }
-}> = ref({
-  nickname: '',
-  userId: '',
-  avatar: '',
-  introduce: '',
-  status: {
-    followedMe: false,
-    following: false
-  },
-  forumLevel: [],
-  data: {
-    like: 0,
-    post: 0,
-    replyPost: 0,
-    following: 0,
-    fans: 0,
-    topic: 0,
-    essencePost: 0
-  }
-})
+}>()
 
 const followRelation = computed((): 'nothing' | 'followedIt' | 'followedMe' | 'followEachOther' => {
   const data = toValue(userData).status
@@ -429,12 +411,37 @@ async function viewUser() {
     return
   }
 
+  if (userDataRes.retcode != HoyolabApiReturnCode.success) {
+
+    return
+  }
+
   const info = userDataRes.data.user_info
+  userData.value = {
+    ready: false,
+    avatar: '',
+    nickname: '',
+    forumLevel: [],
+    introduce: '',
+    data: {
+      like: 0,
+      essencePost: 0,
+      fans: 0,
+      following: 0,
+      post: 0,
+      replyPost: 0,
+      topic: 0
+    },
+    status: {
+      followedMe: false,
+      following: false
+    },
+    userId: 0,
+  }
   userData.value.nickname = info.nickname
   userData.value.avatar = info.avatar_url
   userData.value.userId = info.uid
   userData.value.introduce = info.introduce
-  userData.value.forumLevel = []
   info.level_exps.forEach(level => {
     userData.value.forumLevel.push({
       gameId: level.game_id,
@@ -456,6 +463,8 @@ async function viewUser() {
   userData.value.data.topic = userStats.topic_cnt
   userData.value.data.essencePost = userStats.good_post_num
   userData.value.data.replyPost = userStats.replypost_num
+
+  userData.value.ready = true
 }
 watch(() => route.params, viewUser)
 onMounted(viewUser)
@@ -536,7 +545,7 @@ function logout() {
     </div>
   </div>
 
-  <div class="user" v-else>
+  <div class="user" v-else-if="userData && userData.ready">
     <div class="operation" v-if="user.loggedIn">
 
     </div>
@@ -632,6 +641,10 @@ function logout() {
       </ul>
     </div>
   </div>
+
+  <div class="not-found" v-else>
+    <span>正在加载中或用户不存在</span>
+  </div>
 </template>
 
 <style scoped lang="less">
@@ -661,6 +674,8 @@ function logout() {
   sensitive-interval: 1em;
   forum-level-interval: 1.1em;
   section-radius: #border-radius()[large-x];
+  not-found-font-size: 3.5rem;
+  not-found-interval: 1em;
   avatar-size: 9em;
   avatar-padding: 0.3em;
   nickname-font-size: 4rem;
@@ -700,6 +715,7 @@ function logout() {
   forum-level-forum-bg-color: lighten(#dark()[secondary], 25%);
   stats-item-bg-color: lighten(#dark()[primary], 10%);
   stats-data-text-color: lighten(#dark-text()[important], 16%);
+  not-found-color: lighten(#dark-text()[important], 18%);
 }
 
 .user {
@@ -963,6 +979,18 @@ function logout() {
         }
       }
     }
+  }
+}
+
+.not-found {
+  margin: auto;
+  text-align: center;
+  font-size: #user()[not-found-font-size];
+
+  span {
+    display: block;
+    margin-top: #user()[not-found-interval];
+    color: #dark-user()[not-found-color];
   }
 }
 

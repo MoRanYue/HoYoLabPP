@@ -17,6 +17,7 @@ import { type GenshinImpactRegion, type HonkaiStarRailRegion, type Honkai3Region
 import { notify } from '@/utils/notification';
 import { toValue } from '@vueuse/core';
 import { reliquaryEquipmentPosition, ReliquaryEquipmentPosition } from '@/constants/GameRecordGenshinImpact';
+import { toPercentStr } from '@/utils/utils';
 
 const route = useRoute()
 const router = useRouter()
@@ -248,7 +249,6 @@ const genshinImpactRecordInfo = ref<Partial<{
     reputationLevel: number
     explorationDegree: number
     areas: {
-      id: NumberId
       name: string
       explorationDegree: number
     }[]
@@ -368,8 +368,54 @@ async function viewGameRecord(gameAccountId: NumberId, accountRegion: GameAccoun
           hydroculus: basicInfo.hydroculus_number
         }
       },
-      characters: []
+      characters: [],
+      worlds: []
     }
+    mainInfo.data.world_explorations.forEach(nation => {
+      const areas: {
+        name: string
+        explorationDegree: number
+      }[] = []
+      nation.area_exploration_list.forEach(area => {
+        areas.push({
+          name: area.name,
+          explorationDegree: area.exploration_percentage / 1000
+        })
+      });
+      const bosses: {
+        name: string
+        killingTime: number
+      }[] = []
+      nation.boss_list.forEach(boss => {
+        bosses.push({
+          name: boss.name,
+          killingTime: boss.kill_num
+        })
+      });
+      const otherAvailableItems: {
+        name: string
+        icon: string
+        level: number
+      }[] = []
+      nation.offerings.forEach(item => {
+        otherAvailableItems.push({
+          name: item.name,
+          icon: item.icon,
+          level: item.level
+        })
+      });
+      
+      genshinImpactRecordInfo.value!.worlds!.push({
+        name: nation.name,
+        id: nation.id,
+        reputationLevel: nation.level,
+        icon: nation.icon,
+        areas,
+        bosses,
+        explorationDegree: nation.exploration_percentage / 1000,
+        otherAvailableItems
+      })
+    });
 
     const avatarInfo = await genshinImpactAccountCharacterInfo(gameAccountId, accountRegion, user.chooseLtoken(), user.accountId, user.mihoyoId)
     avatarInfo.data.avatars.forEach(avatar => {
@@ -443,15 +489,6 @@ async function viewGameRecord(gameAccountId: NumberId, accountRegion: GameAccoun
         });
       });
     });
-
-    // inst!.proxy!.$nextTick(() => {
-    //   console.log(genshinImpactRecordInfo.value)
-
-    //   if (genshinImpactDetailsElement.value) {
-    //     const characterItems = genshinImpactDetailsElement.value.querySelectorAll('div.character > ul > li')
-    //   }
-    // })
-    
   }
 
   currentGame.value = recordGameId
@@ -632,6 +669,60 @@ function genshinImpactElementIconUrl(name: CharacterElement) {
               {desc: '水神瞳', value: genshinImpactRecordInfo.main.oculi.hydroculus}
             ]"></v-game-record-data>
           </div>
+        </div>
+
+        <div class="world" v-if="genshinImpactRecordInfo.worlds">
+          <span class="title">世界探索</span>
+
+          <ul>
+            <li v-for="nation in genshinImpactRecordInfo.worlds" :key="nation.id">
+              <div class="nation-name">
+                <img :src="nation.icon" :alt="nation.name" :title="nation.name">
+                <span>{{ nation.name }}</span>
+              </div>
+
+              <div class="data">
+                <div class="basic">
+                  <span class="title">主要</span>
+
+                  <ul>
+                    <li><v-info-show title="探索度" :info="toPercentStr(nation.explorationDegree)"></v-info-show></li>
+                    <li><v-info-show title="声望等级" :info="`${nation.reputationLevel}级`"></v-info-show></li>
+                  </ul>
+                </div>
+
+                <div class="area" v-if="nation.areas.length != 0">
+                  <span class="title">地区探索度</span>
+
+                  <ul>
+                    <li v-for="area in nation.areas" :key="area.name">
+                      <v-info-show :title="area.name" :desc="area.name" :info="toPercentStr(area.explorationDegree)"></v-info-show>
+                    </li>
+                  </ul>
+                </div>
+
+                <div class="boss" v-if="nation.bosses.length != 0">
+                  <span class="title">世界首领怪物击杀次数</span>
+
+                  <ul>
+                    <li v-for="boss in nation.bosses" :key="boss.name">
+                      <v-info-show :title="boss.name" :desc="boss.name" :info="`${boss.killingTime}次`"></v-info-show>
+                    </li>
+                  </ul>
+                </div>
+
+                <div class="other-item" v-if="nation.otherAvailableItems.length != 0">
+                  <span class="title">其它项</span>
+
+                  <ul>
+                    <li v-for="item in nation.otherAvailableItems" :key="item.name">
+                      <v-info-show :title="item.name" :desc="item.name" :info="`${item.level}级`"></v-info-show>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </li>
+          </ul>
         </div>
 
         <div class="character" v-if="genshinImpactRecordInfo.characters?.length != 0">
@@ -825,6 +916,19 @@ function genshinImpactElementIconUrl(name: CharacterElement) {
   details-character-details-costume-item-interval: 0.87em;
   details-character-details-costume-item-image-radius: #border-radius()[medium];
   details-character-details-costume-item-name-interval: 0.5em;
+  details-world-nation-img-height: 5em;
+  details-world-padding: 0.4em 0.6em;
+  details-world-nation-interval: 0.55em 0.4em;
+  details-world-nation-name-padding: 0.15em;
+  details-world-nation-name-radius: #border-radius()[small];
+  details-world-nation-name-font-size: 1.08rem;
+  details-world-data-item-interval: 0.3em;
+  details-world-data-item-radius: #border-radius()[medium];
+  details-world-data-item-padding: 0.2em;
+  details-world-data-basic-item-interval: 0.35em;
+  details-world-data-other-item-interval: 0.3em;
+  details-world-data-boss-item-interval: 0.38em;
+  details-world-data-area-item-interval: 0.45em;
 }
 #dark-game-record() {
   account-selector-bg-color: lighten(#dark()[primary], 7%);
@@ -857,6 +961,10 @@ function genshinImpactElementIconUrl(name: CharacterElement) {
   details-character-details-reliquery-set-effects-item-name: darken(#dark-text()[color], 5%);
   details-character-details-reliquery-set-effects-item-effect-bg-color: lighten(#dark()[secondary], 5%);
   details-character-details-reliquery-set-effects-item-effect-activation-count-color: darken(#dark-text()[color], 10%);
+  details-world-bg-color: lighten(#dark()[secondary], 6%);
+  details-world-nation-name-bg-color: lighten(#dark()[secondary], 14%);
+  details-world-nation-name-color: darken(#dark-text()[color], 6%);
+  details-world-data-item-bg-color: fadeout(lighten(#dark()[primary], 4%), 10%);
 }
 
 .game-record {
@@ -897,6 +1005,101 @@ function genshinImpactElementIconUrl(name: CharacterElement) {
         background-color: #dark-game-record()[details-main-bg-color];
         gap: #game-record()[details-main-list-interval];
         padding: #game-record()[details-main-card-padding];
+      }
+
+      > .world {
+        display: flex;
+        flex-direction: column;
+        flex-wrap: nowrap;
+        background-color: #dark-game-record()[details-world-bg-color];
+        padding: #game-record()[details-world-padding];
+
+        > ul {
+          list-style: none;
+          display: flex;
+          flex-direction: row;
+          flex-wrap: wrap;
+          gap: #game-record()[details-world-nation-interval];
+
+          > li {
+            display: flex;
+            flex-direction: row;
+            align-items: flex-start;
+
+            .data {
+              display: flex;
+              flex-direction: column;
+              flex-wrap: wrap;
+              align-items: flex-start;
+              gap: #game-record()[details-world-data-item-interval];
+
+              > div {
+                background-color: #dark-game-record()[details-world-data-item-bg-color];
+                padding: #game-record()[details-world-data-item-padding];
+                border-radius: #game-record()[details-world-data-item-radius];
+              }
+
+              .other-item {
+                > ul {
+                  list-style: none;
+                  display: flex;
+                  flex-direction: row;
+                  flex-wrap: wrap;
+                  gap: #game-record()[details-world-data-other-item-interval];
+                }
+              }
+
+              .boss {
+                > ul {
+                  list-style: none;
+                  display: flex;
+                  flex-direction: row;
+                  flex-wrap: wrap;
+                  gap: #game-record()[details-world-data-boss-item-interval];
+                }
+              }
+
+              .area {
+                > ul {
+                  list-style: none;
+                  display: flex;
+                  flex-direction: row;
+                  flex-wrap: wrap;
+                  gap: #game-record()[details-world-data-area-item-interval];
+                }
+              }
+
+              .basic {
+                > ul {
+                  list-style: none;
+                  display: flex;
+                  flex-direction: row;
+                  flex-wrap: wrap;
+                  gap: #game-record()[details-world-data-basic-item-interval];
+                }
+              }
+            }
+
+            .nation-name {
+              padding: #game-record()[details-world-nation-name-padding];
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              background-color: #dark-game-record()[details-world-nation-name-bg-color];
+              border-radius: #game-record()[details-world-nation-name-radius];
+
+              img {
+                display: block;
+                height: #game-record()[details-world-nation-img-height];
+              }
+              span {
+                color: #dark-game-record()[details-world-nation-name-color];
+                font-size: #game-record()[details-world-nation-name-font-size];
+                font-weight: 650;
+              }
+            }
+          }
+        }
       }
 
       > .character-details {

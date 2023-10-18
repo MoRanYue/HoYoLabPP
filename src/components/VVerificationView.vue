@@ -18,7 +18,24 @@ const emits = defineEmits(['finish', 'error'])
 
 const user = useUserStore()
 
+async function importGeetest() {
+  if (!window.initGeetest) {
+    try {
+      await import('https://static.geetest.com/static/js/gt.0.4.9.js')
+    } catch (err) {
+      notify('极验行为验证3模块加载失败', '模块', 'error')
+      return false
+    }
+  }
+  return true
+}
+
 async function autoStart() {
+  if (!(await importGeetest())) {
+    emits('error', '模块导入失败')
+    emits('finish')
+    return
+  }
 
   const verificationInfo = await hoyolabCreateVerification(user.chooseStoken(), user.accountId, user.mihoyoId)
   if (verificationInfo.retcode != HoyolabApiReturnCode.success) {

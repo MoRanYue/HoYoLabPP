@@ -63,7 +63,8 @@ export async function processStructContent(data: string | StructContent[]) {
             }, htmlTag('img', {
               src: emotions[emotionName].url,
               alt: emotionName,
-              title: emotionName
+              title: emotionName,
+              loading: 'lazy'
             }, undefined, true))
 
             continue
@@ -140,7 +141,8 @@ export async function processStructContent(data: string | StructContent[]) {
         }, htmlTag('img', {
           style,
           alt: part.insert.image,
-          src: part.insert.image
+          src: part.insert.image,
+          loading: 'lazy'
         }, undefined, true))
       }
       else if (part.insert.vod) {
@@ -220,7 +222,8 @@ export async function processStructContent(data: string | StructContent[]) {
             title: postId,
             target: '_blank'
           }, htmlTag('img', {
-            src: linkCard.cover
+            src: linkCard.cover,
+            loading: 'lazy'
           }, undefined, true))) + htmlTag('div', {
             'class': 'content'
           }, htmlTag('div', {
@@ -245,7 +248,8 @@ export async function processStructContent(data: string | StructContent[]) {
             title: giftId,
             target: '_blank'
           }, htmlTag('img', {
-            src: linkCard.cover
+            src: linkCard.cover,
+            loading: 'lazy'
           }, undefined, true))) + htmlTag('div', {
             'class': 'content'
           }, htmlTag('div', {
@@ -258,6 +262,15 @@ export async function processStructContent(data: string | StructContent[]) {
             'class': 'price'
           }, htmlTag('span', undefined, linkCard.price))))
         }
+      }
+      else {
+        str += htmlTag('div', {
+          'class': 'hoyolab-unknown-content'
+        }, htmlTag('span', {
+          'class': 'title'
+        }, '未知内容') + htmlTag('span', {
+          'class': 'content'
+        }, JSON.stringify(part)))
       }
     }
   }
