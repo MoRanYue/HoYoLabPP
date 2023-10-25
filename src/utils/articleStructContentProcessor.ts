@@ -1,12 +1,29 @@
-import type { StructContent, StructVideo, StructImage, StructTextAttribute, StructImageAttribute, StructTab, StructDividingLine, StructArticleLinkCard, StructGiftLinkCard } from "@/constants/IStructContent";
+import type { StructContent, StructVideo, StructImage, StructTextAttribute, StructImageAttribute, StructTab, StructDividingLine, StructArticleLinkCard, StructGiftLinkCard, StructMention } from "@/constants/IStructContent";
 import { htmlTag, reverseColor } from "./utils";
-import { emotionList } from "@/api/interfaces";
 import { getEmotions } from '@/api/resources'
 import convertColor from 'color-convert'
-import type { Dict } from "@/constants/TDict";
 
+function isMihoyoUrl(url: string) {
+  const host = new URL(url).host.toLowerCase()
+  return host.includes('miyoushe.com') || host.includes('mihoyo.com') || host.includes('hoyolab.com') || host.includes('hoyoverse.com')
+}
+function isArticleUrl(url: string) {
+  const urlData = new URL(url)
+
+  return isMihoyoUrl(url) && urlData.pathname.toLowerCase().includes('article')
+}
+function isUserUrl(url: string) {
+  const urlData = new URL(url)
+
+  return isMihoyoUrl(url) && urlData.pathname.toLowerCase().includes('accountcenter')
+}
 function getIdInUrl(url: string) {
-  return url.split('/').pop()!.split('?').shift()
+  const urlData = new URL(url)
+  return urlData.pathname.split('/').pop()
+}
+function getUserIdInUrl(url: string) {
+  const urlData = new URL(url)
+  return urlData.searchParams.get('id')
 }
 
 export async function processStructContent(data: string | StructContent[]) {
@@ -20,9 +37,6 @@ export async function processStructContent(data: string | StructContent[]) {
   }
 
   const emotions = getEmotions()
-  if (!emotions) {
-    return '错误'
-  }
 
   let str: string = ''
   for (let i = 0; i < info.length; i++) {
@@ -57,6 +71,10 @@ export async function processStructContent(data: string | StructContent[]) {
               advance()
             }
             advance()
+
+            if (!emotions) {
+              continue
+            }
 
             content += htmlTag('div', {
               'class': 'hoyolab-emotion'
@@ -107,9 +125,17 @@ export async function processStructContent(data: string | StructContent[]) {
         }
 
         if (attrs.link) {
+          let url: string = attrs.link
+          if (isArticleUrl(url)) {
+            url = `/article/${getIdInUrl(url)}`
+          }
+          else if (isUserUrl(url)) {
+            url = `/user/${getUserIdInUrl(url)}`
+          }
+
           str += htmlTag('a', {
             style,
-            href: attrs.link,
+            href: url,
             target: '_blank'
           }, content)
         }
@@ -262,6 +288,19 @@ export async function processStructContent(data: string | StructContent[]) {
             'class': 'price'
           }, htmlTag('span', undefined, linkCard.price))))
         }
+      }
+      else if (part.insert.mention) {
+        const mention = <StructMention['mention']>part.insert.mention
+
+        str += htmlTag('span', {
+          'class': 'hoyolab-mention'
+        }, htmlTag('span', {
+          'class': 'at'
+        }, '@') + htmlTag('a', {
+          href: `/user/${mention.uid}`,
+          title: mention.nickname,
+          target: '_blank'
+        }, mention.nickname))
       }
       else {
         str += htmlTag('div', {

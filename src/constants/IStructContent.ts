@@ -84,11 +84,34 @@ export interface StructArticleLinkCard {
   }
 }
 
+export interface StructGroupCard {
+  villa_card: {
+    villa_id: string
+    villa_name: string
+    villa_avatar_url: string
+    villa_cover: string
+    owner_uid: string
+    owner_nickname: string
+    owner_avatar_url: string
+    villa_introduce: string
+    tag_list: string[]
+    villa_member_num: string
+    is_available: boolean
+  }
+}
+
 export interface StructDividingLine {
   divider: 'line_1' | 'line_2' | 'line_3' | 'line_4'
 }
 
+export interface StructMention {
+  mention: {
+    uid: number
+    nickname: string
+  }
+}
+
 export interface StructContent {
-  insert: string | StructImage | StructVideo | StructTab | StructDividingLine | StructArticleLinkCard | StructGiftLinkCard
+  insert: string | StructImage | StructVideo | StructTab | StructDividingLine | StructArticleLinkCard | StructGiftLinkCard | StructGroupCard | StructMention
   attributes?: Partial<StructTextAttribute | StructImageAttribute>
 }
