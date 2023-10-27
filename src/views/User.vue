@@ -401,18 +401,13 @@ async function viewUser() {
     userDataRes = await userInfo(specialUserId, 'web', user.chooseLtoken(), user.accountId, user.mihoyoId)
   }
   else if (!user.loggedIn) {
-
+    return
   }
   else {
     userDataRes = await userInfo(user.accountId, 'web', user.chooseLtoken(), user.accountId, user.mihoyoId)
   }
 
-  if (userDataRes.retcode != 0) {
-    return
-  }
-
   if (userDataRes.retcode != HoyolabApiReturnCode.success) {
-
     return
   }
 

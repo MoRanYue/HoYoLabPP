@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref, type Ref, watch } from 'vue';
 import { useAsyncState, watchOnce, toValue } from '@vueuse/core';
-import { useMotion } from '@vueuse/motion';
 import { processStructContent } from '@/utils/articleStructContentProcessor';
 import { formatTime } from '@/utils/utils'
 import { upvoteReply, downvoteReply } from '@/api/interfaces';
@@ -129,7 +128,7 @@ async function vote(downvote: boolean = false) {
           <v-icon type="dislike" size="20" theme="outline" title="点踩" :stroke-width="2" v-if="props.stats.dislike" content>{{ props.stats.dislike }}</v-icon>
         </div>
 
-        <div class="operation">
+        <div class="operation" v-if="user.loggedIn">
           <v-button class="like" @click="vote(false)" title="点赞" icon="like" type="icon" :icon-theme="status.liked ? 'filled' : 'outline'" :icon-width="3"></v-button>
           <v-button class="dislike" @click="vote(true)" title="点踩" icon="dislike-two" type="icon" :icon-theme="status.disliked ? 'two-tone' : 'outline'" :icon-width="3"></v-button>
 

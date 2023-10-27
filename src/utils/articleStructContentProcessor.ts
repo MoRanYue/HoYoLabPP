@@ -303,13 +303,20 @@ export async function processStructContent(data: string | StructContent[]) {
         }, mention.nickname))
       }
       else {
+        const content = JSON.stringify(part, undefined, 2)
+
         str += htmlTag('div', {
           'class': 'hoyolab-unknown-content'
         }, htmlTag('span', {
           'class': 'title'
-        }, '未知内容') + htmlTag('span', {
+        }, '未知内容') + htmlTag('div', {
           'class': 'content'
-        }, JSON.stringify(part)))
+        }, content.replaceAll(' ', '&nbsp;').replaceAll('\n', '<br>')) // + htmlTag('a', {
+        //   'class': 'link-btn',
+        //   target: '_blank',
+        //   href: `https://localhost:3002/rms/report?category=article&content=${encodeURIComponent('未知文章内容：\n' + content)}`
+        // }, '向开发者报告'))
+        )
       }
     }
   }

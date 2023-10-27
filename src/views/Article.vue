@@ -13,7 +13,7 @@ import { useUserStore } from '@/stores/user'
 import type { Dict } from '@/constants/TDict';
 import { HoyolabApiReturnCode, HoyolabParentForum, type NumberId } from '@/constants/Api';
 import type { UserAnchorInfo } from '@/constants/IUserAnchorInfo';
-import { getForums } from '@/api/resources';
+import { getForums, type ChildForum } from '@/api/resources';
 import type { SwitchInfo } from '@/constants/TSwitchInfo';
 import { notify } from '@/utils/notification';
 
@@ -24,22 +24,8 @@ const route = useRoute()
 const page = ref<number>(1)
 const lastForumArticleId = ref<NumberId>()
 let currentForumGameId: NumberId = 2
-let currentForumCategory: {
-  id: number;
-  name: string;
-  desc: string;
-  headerPicture: string;
-  icon: string;
-  videoForums: Dict[];
-}[] | undefined = undefined
-let currentChildForumCategory: {
-  id: number;
-  name: string;
-  desc: string;
-  headerPicture: string;
-  icon: string;
-  videoForums: Dict[];
-} | undefined = undefined
+let currentForumCategory: ChildForum[] | undefined = undefined
+let currentChildForumCategory: ChildForum | undefined = undefined
 
 const articleEnd = ref<HTMLElement>()
 const isTimeToRefresh = useElementVisibility(articleEnd)
@@ -232,18 +218,18 @@ const childForumChoices: Ref<SwitchInfo> = ref([
 
 ])
 async function switchForumCategory(gameId: NumberId) {
+  currentForumGameId = gameId
+  childForumChoices.value = [{text: '首页', value: 'home', default: true}]
+
   const forums = getForums()
   if (!forums) {
-    notify('尚未加载完成', '文章', 'warning')
-    return
+    console.warn('未获取到论坛分区信息，子分区只有首页信息')
+    return await switchChildForumCategory('home')
   }
-
-  currentForumGameId = gameId
 
   const parentForum = forums[gameId];
   currentForumCategory = parentForum
 
-  childForumChoices.value = [{text: '首页', value: 'home', default: true}]
   parentForum.forEach((childForum, i) => {
     childForumChoices.value.push({
       text: childForum.name,
@@ -254,15 +240,14 @@ async function switchForumCategory(gameId: NumberId) {
   await switchChildForumCategory('home')
 }
 async function switchChildForumCategory(forumId: NumberId) {
-  if (!currentForumCategory) {
-    notify('尚未加载完成', '文章', 'warning')
-    return
-  }
-
   if (forumId == 'home') {
     isForumArticle.value = false
   }
   else {
+    if (!currentForumCategory) {
+      return
+    }
+
     isForumArticle.value = true
 
     for (let i = 0; i < currentForumCategory.length; i++) {
@@ -296,20 +281,6 @@ async function switchForumArticleOrderType(orderType: keyof typeof ForumArticleO
 onMounted(() => {
   setTimeout(() => switchForumCategory(2), 500)
 })
-// function processForums() {
-//   const forums = getForums()
-//   for (const gameId in forums) {
-//     if (Object.prototype.hasOwnProperty.call(forums, gameId)) {
-//       const parentForum = forums[gameId];
-
-//       parentForumChoices.value.push({
-//         text: parentForum.name,
-//         value: gameId.toString()
-//       })
-//     }
-//   }
-// }
-// processForums()
 
 </script>
 

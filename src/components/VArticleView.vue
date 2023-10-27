@@ -9,7 +9,6 @@ import VButton from './VButton.vue';
 import VUserAnchor from './VUserAnchor.vue';
 import VReplyItem from './VReplyItem.vue';
 import VSwitch from './VSwitch.vue'
-import VNeedToLoad from './VNeedToLoad.vue';
 import VBackgroundBlocker from './VBackgroundBlocker.vue';
 import VReplyView from './VReplyView.vue';
 import { formatTime } from '@/utils/utils'
@@ -288,7 +287,7 @@ async function collect() {
   <section class="article-view" ref="article">
     <div class="operation">
       <v-button class="close" title="关闭" icon="close" type="icon" :icon-width="3" @click="closeView"></v-button>
-      <div class="article-operation">
+      <div class="article-operation" v-if="user.loggedIn">
         <v-button class="like" @click="upvote" title="点赞" icon="like" type="icon" :icon-theme="status.liked ? 'filled' : 'outline'" :icon-width="3"></v-button>
         <v-button class="collect" @click="collect" title="收藏" icon="bookmark" type="icon" :icon-theme="status.collected ? 'filled' : 'outline'" :icon-width="3"></v-button>
         <v-button class="forward" title="转发（仅用于完成米游币任务）" icon="share-two" type="icon" :icon-width="3"></v-button>

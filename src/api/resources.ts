@@ -4,9 +4,10 @@ import { notify } from "@/utils/notification";
 
 const maxRetryingTimes = 6
 
-let emotions: Record<string, {
+export interface Emotion {
   url: string
-}> | undefined = undefined
+}
+let emotions: Record<string, Emotion> | undefined = undefined
 function initEmotions(tryingTimes: number = 1) {
   emotionList().then(emotionInfo => {
     emotions = {}
@@ -27,20 +28,21 @@ function initEmotions(tryingTimes: number = 1) {
   })
 }
 
-interface VideoForum {
+export interface VideoForum {
   id: number
   name: string
   desc: string
 }
-
-let forums: Record<string, {
+export interface ChildForum {
   id: number
   name: string
   desc: string
   headerPicture: string
   icon: string
   videoForums: VideoForum[]
-}[]> | undefined = undefined
+}
+
+let forums: Record<string, ChildForum[]> | undefined = undefined
 function initForums(tryingTimes: number = 1) {
   forumInfo().then(forumData => {
     forums = {}
