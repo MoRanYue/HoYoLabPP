@@ -179,6 +179,11 @@ const rules: string[] = [
 
     .title {
       font-size: #home()[title-size];
+      font-weight: 900;
+      background: linear-gradient(45deg, darken(#color()[blue], 10%), darken(#color()[white], 4%));
+      background-clip: text;
+      -webkit-background-clip: text;
+      color: transparent;
     }
 
     each(range(1, 6), {

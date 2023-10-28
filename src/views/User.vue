@@ -724,6 +724,7 @@ function logout() {
   > .details {
     display: flex;
     flex-direction: row;
+    flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
     background-color: #dark-user()[details-bg-color];
