@@ -126,11 +126,20 @@ watch(props, async () => {
   
   toTop()
 
-  const contentSource: StructContent[] = JSON.parse(props.content || '[]')
+  let contentSource: StructContent[] = []
   if (props.postViewType == 2) {
-    props.postImages.forEach(url => {
-      contentSource.push({insert: {image: url}})
+    const contentTemp: {
+      describe: string
+      imgs: string[]
+    } = JSON.parse(props.content)
+
+    contentSource.push({insert: contentTemp.describe})
+    contentTemp.imgs.forEach(imgUrl => {
+      contentSource.push({insert: {image: imgUrl}})
     });
+  }
+  else {
+    contentSource = JSON.parse(props.content || '[]')
   }
 
   content.value = await processStructContent(contentSource)

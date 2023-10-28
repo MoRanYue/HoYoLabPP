@@ -172,7 +172,7 @@ async function viewPost(postId: string) {
 
   const post = postInfo.data.post
   currentArticle.value.title = post.post.subject
-  currentArticle.value.content = post.post.structured_content
+  currentArticle.value.content = post.post.view_type == 2 ? post.post.content : post.post.structured_content
   currentArticle.value.postId = post.post.post_id
   currentArticle.value.postViewType = post.post.view_type
   currentArticle.value.postImages = post.post.images
