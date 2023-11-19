@@ -2,7 +2,8 @@
 import VCard from '@/components/VCard.vue'
 import VTab from '@/components/VTab.vue';
 import VTabItem from '@/components/VTabItem.vue';
-import VHomeSimilarProjectItem from '@/components/VHomeSimilarProjectItem.vue'; 
+import VHomeSimilarProjectItem from '@/components/VHomeSimilarProjectItem.vue';
+import VHomeSimilarProjectItemLinkItem from '@/components/VHomeSimilarProjectItemLinkItem.vue';
 
 const rules: string[] = [
   '在该声明中，上海米哈游网络科技股份有限公司将简称为“米哈游”。',
@@ -19,6 +20,13 @@ const rules: string[] = [
     <section class="header">
       <h1 class="title">HoYoLab PP</h1>
       <h2>“HoYoLab PP”的全名为“HoYoLab Plus Plus”，中文名为“米游社++”。正如字面意思，为米游社增加便携性。</h2>
+    </section>
+
+    <section class="links">
+      <ul>
+        <v-home-similar-project-item-link-item platform="gitHub" url="https://github.com/Kamisato-Ayaka-233/HoYoLabPP" title="前端网页源代码"></v-home-similar-project-item-link-item>
+        <v-home-similar-project-item-link-item platform="gitHub" url="https://github.com/Kamisato-Ayaka-233/HoYoLabPP.Backend" title="后端服务器源代码"></v-home-similar-project-item-link-item>
+      </ul>
     </section>
 
     <section class="main">
@@ -145,6 +153,69 @@ const rules: string[] = [
               }
             }"></v-home-similar-project-item>
           </v-tab-item>
+
+          <v-tab-item>
+            <v-home-similar-project-item project="提瓦特小助手" id="teyvatHelper" :type="['weChatMini']" desc="《提瓦特小助手》是专注旅行者服务的微信小程序" 
+            :links="{
+              officalWebsite: 'https://www.yshelper.com/'
+            }" :supported-functions="{}"></v-home-similar-project-item>
+          </v-tab-item>
+
+          <v-tab-item>
+            <v-home-similar-project-item project="Paimon Moe" id="paimonMoe" :type="['web']" desc="带有祈愿分析与角色计算器等功能的小工具" 
+            :links="{
+              officalWebsite: 'https://paimon.moe/'
+            }" :supported-functions="{
+              achievement: {
+                analysis: true,
+                genshinImpact: true,
+                exportable: true,
+                importable: true,
+                management: true
+              },
+              calendar: {
+                drawingPool: true,
+                genshinImpact: true,
+                material: true,
+              },
+              drawingRecord: {
+                analysis: true,
+                genshinImpact: true
+              }
+            }"></v-home-similar-project-item>
+          </v-tab-item>
+
+          <v-tab-item>
+            <v-home-similar-project-item project="寻空" author="Scighost" id="xunKong" :type="['windows']" desc="寻空可以帮你统计和分析原神游戏中的各项数据，快速掌握账号的相关信息" 
+            :links="{
+              officalWebsite: 'https://xunkong.cc/',
+              gitHub: 'https://github.com/xunkong/xunkong',
+              appStore: 'https://www.microsoft.com/store/apps/9N2SVG0JMT12'
+            }" :supported-functions="{}"></v-home-similar-project-item>
+          </v-tab-item>
+
+          <v-tab-item>
+            <v-home-similar-project-item project="Yae Achievement" author="HolographicHat" id="yaeAchievement" :type="['windows']" desc="一个简单的原神成就管理工具" 
+            :links="{
+              gitHub: 'https://github.com/HolographicHat/YaeAchievement'
+            }" :supported-functions="{}"></v-home-similar-project-item>
+          </v-tab-item>
+
+          <v-tab-item>
+            <v-home-similar-project-item project="椰羊 Cocogoat" author="月海亭 YuehaiTeam" id="cocogoat" :type="['web']" desc="网页端原神工具箱" 
+            :links="{
+              gitHub: 'https://github.com/YuehaiTeam/cocogoat',
+              officalWebsite: 'https://cocogoat.work/'
+            }" :supported-functions="{}"></v-home-similar-project-item>
+          </v-tab-item>
+
+          <v-tab-item>
+            <v-home-similar-project-item project="Sangonomia" author="AuroraZiling" id="sangonomia" :type="['windows']" desc="原神祈愿记录工具" 
+            :links="{
+              gitHub: 'https://github.com/AuroraZiling/sangonomiya',
+              hostedWebsite: 'https://sangonomiya.coding.net/public-artifacts/sangonomiya/pre-release/packages'
+            }" :supported-functions="{}"></v-home-similar-project-item>
+          </v-tab-item>
         </v-tab>
       </v-card>
     </section>
@@ -179,6 +250,11 @@ const rules: string[] = [
 
     .title {
       font-size: #home()[title-size];
+      font-weight: 900;
+      background: linear-gradient(45deg, darken(#color()[blue], 10%), darken(#color()[white], 4%));
+      background-clip: text;
+      -webkit-background-clip: text;
+      color: transparent;
     }
 
     each(range(1, 6), {
@@ -186,6 +262,20 @@ const rules: string[] = [
         font-family: "LXGW WenKai", sans-serif;
       }
     })
+  }
+
+  .links {
+    padding: 0.4em;
+    border: 2px solid darken(#dark()[sub], 4%);
+    border-radius: #border-radius()[large-x];
+    background-color: lighten(#dark()[secondary], 7%);
+
+    > ul {
+      list-style: none;
+      display: flex;
+      flex-direction: row;
+      flex-wrap: nowrap;
+    }
   }
 
   .main {

@@ -21,6 +21,16 @@
   link-card-cover-interval: 0.5em;
   link-card-gift-border: 2px solid;
   link-card-gift-border-flow-time: 3s;
+  unknown-title-font-size: 1.1rem;
+  unknown-padding: 0.6em 0.7em;
+  unknown-radius: #border-radius()[small];
+  unknown-border: 2px solid #dark-struct-content()[unknown-border-color];
+  unknown-content-radius: #border-radius()[tiny];
+  unknown-content-padding: 0.3em 0.5em;
+  mention-padding: 0.35em 0.2em;
+  mention-at-font-size: 1.5rem;
+  mention-radius: #border-radius()[tiny];
+  mention-user-transition-time: 0.15s;
 }
 #dark-struct-content() {
   tab-summary-bg-color: lighten(#dark()[secondary], 14%);
@@ -30,6 +40,59 @@
   tab-content-border-color: lighten(#dark()[sub], 5%);
   link-card-bg-color: lighten(#dark()[secondary], 12%);
   link-card-text-color: lighten(#dark-text()[important], 20%);
+  unknown-bg-color: lighten(#dark()[secondary], 14%);
+  unknown-border-color: darken(#dark()[sub], 15%);
+  unknown-content-bg-color: darken(#dark()[secondary], 4%);
+  unknown-content-color: darken(#dark-text()[color], 6%);
+  mention-bg-color: lighten(#dark()[secondary], 14%);
+  mention-user-color: lighten(#dark-text()[color], 2%);
+  mention-user-hover-color: lighten(#dark-text()[color], 10%);
+}
+
+:deep(.hoyolab-mention) {
+  background-color: #dark-struct-content()[mention-bg-color];
+  padding: #struct-content()[mention-padding];
+  border-radius: #struct-content()[mention-radius];
+
+  .at {
+    font-size: #struct-content()[mention-at-font-size];
+    font-weight: 500;
+  }
+  a {
+    text-decoration: none;
+    font-weight: 600;
+    color: #dark-struct-content()[mention-user-color];
+    transition-duration: #struct-content()[mention-user-transition-time];
+
+    &:hover {
+      color: #dark-struct-content()[mention-user-hover-color];
+    }
+  }
+}
+
+:deep(.hoyolab-unknown-content) {
+  display: flex;
+  flex-direction: column;
+  flex-wrap: nowrap;
+  background-color: #dark-struct-content()[unknown-bg-color];
+  padding: #struct-content()[unknown-padding];
+  border-radius: #struct-content()[unknown-radius];
+  border: #struct-content()[unknown-border];
+
+  .title {
+    font-size: #struct-content()[unknown-title-font-size];
+    font-weight: 600;
+    font-style: italic;
+  }
+  .content {
+    background-color: #dark-struct-content()[unknown-content-bg-color];
+    border-radius: #struct-content()[unknown-content-radius];
+    padding: #struct-content()[unknown-content-padding];
+    font-family: 'Courier New', Courier, monospace;
+    white-space: break-spaces;
+    word-break: break-all;
+    color: #dark-struct-content()[unknown-content-color];
+  }
 }
 
 :deep(.hoyolab-link-card) {
@@ -66,9 +129,6 @@
         font-weight: 500;
       }
     }
-
-    // .price {
-    // }
   }
 
   > .cover {

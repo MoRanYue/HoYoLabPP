@@ -401,18 +401,13 @@ async function viewUser() {
     userDataRes = await userInfo(specialUserId, 'web', user.chooseLtoken(), user.accountId, user.mihoyoId)
   }
   else if (!user.loggedIn) {
-
+    return
   }
   else {
     userDataRes = await userInfo(user.accountId, 'web', user.chooseLtoken(), user.accountId, user.mihoyoId)
   }
 
-  if (userDataRes.retcode != 0) {
-    return
-  }
-
   if (userDataRes.retcode != HoyolabApiReturnCode.success) {
-
     return
   }
 
@@ -643,7 +638,7 @@ function logout() {
   </div>
 
   <div class="not-found" v-else>
-    <span>正在加载中或用户不存在</span>
+    <span>正在加载中</span>
   </div>
 </template>
 
@@ -729,6 +724,7 @@ function logout() {
   > .details {
     display: flex;
     flex-direction: row;
+    flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
     background-color: #dark-user()[details-bg-color];

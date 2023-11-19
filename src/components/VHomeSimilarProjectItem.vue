@@ -15,7 +15,7 @@ const props = withDefaults(defineProps<{
   project: string
   id: string
   desc: string
-  author: string
+  author?: string
   links?: Partial<ProjectLink>
   type: ('ios' | 'android' | 'web' | 'windows' | 'macos' | 'linux' | 'weChatMini')[]
   supportedFunctions: Partial<{

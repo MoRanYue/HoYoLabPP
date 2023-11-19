@@ -4,8 +4,7 @@ import type { Dict } from '../constants/TDict'
 
 const location = toValue(useBrowserLocation())
 const fetch: AxiosInstance = axios.create({
-  baseURL: // 'http://localhost:3002/api',
-  `${location.origin}/api`,
+  baseURL: `${location.origin}/api`,
   timeout: 15000,
   decompress: true,
   withCredentials: true,
@@ -13,6 +12,11 @@ const fetch: AxiosInstance = axios.create({
 
 fetch.interceptors.request.use(async (cfg: InternalAxiosRequestConfig) => {
   // 在发送请求之前做些什么
+
+  // 用于调试
+  if (cfg.baseURL!.includes('localhost')) {
+    cfg.baseURL = 'http://localhost:3002/api'
+  }
   
   return cfg
 }, async (err: Error) => {

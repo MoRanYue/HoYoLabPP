@@ -74,7 +74,7 @@ const coverAnimation = useMotion(cover, {
     </div>
 
     <div class="cover" v-if="props.cover" @click="$emit('check', props.postId)" ref="cover">
-      <img :src="props.cover">
+      <img :src="props.cover" :alt="props.postId" :title="props.title" loading="lazy">
     </div>
   </section>
 </template>

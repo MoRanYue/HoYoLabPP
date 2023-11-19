@@ -5,6 +5,7 @@ import VIcon from './VIcon.vue';
 const props = withDefaults(defineProps<{
   platform: keyof ProjectLink
   url: string
+  title?: string
 }>(), {})
 
 const icons: Record<keyof ProjectLink, string> = {
@@ -27,7 +28,7 @@ const platformNames: Record<keyof ProjectLink, string> = {
 
 <template>
   <li class="link-item">
-    <a :href="props.url" :title="platformNames[props.platform]" target="_blank"><v-icon size="40" theme="filled" :type="icons[props.platform]"></v-icon></a>
+    <a :href="props.url" :title="props.title ?? platformNames[props.platform]" target="_blank"><v-icon size="40" theme="filled" :type="icons[props.platform]"></v-icon></a>
   </li>
 </template>
 
