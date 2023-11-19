@@ -1,7 +1,6 @@
 <center>
   <h1>HoYoLab Plus Plus</h1>
   <h5>米游社++</h5>
-  <!-- <span>假装这里有个徽标</span> -->
 </center>
 
 ## 介绍
