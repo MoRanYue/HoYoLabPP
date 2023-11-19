@@ -2,7 +2,8 @@
 import VCard from '@/components/VCard.vue'
 import VTab from '@/components/VTab.vue';
 import VTabItem from '@/components/VTabItem.vue';
-import VHomeSimilarProjectItem from '@/components/VHomeSimilarProjectItem.vue'; 
+import VHomeSimilarProjectItem from '@/components/VHomeSimilarProjectItem.vue';
+import VHomeSimilarProjectItemLinkItem from '@/components/VHomeSimilarProjectItemLinkItem.vue';
 
 const rules: string[] = [
   '在该声明中，上海米哈游网络科技股份有限公司将简称为“米哈游”。',
@@ -19,6 +20,13 @@ const rules: string[] = [
     <section class="header">
       <h1 class="title">HoYoLab PP</h1>
       <h2>“HoYoLab PP”的全名为“HoYoLab Plus Plus”，中文名为“米游社++”。正如字面意思，为米游社增加便携性。</h2>
+    </section>
+
+    <section class="links">
+      <ul>
+        <v-home-similar-project-item-link-item platform="gitHub" url="https://github.com/Kamisato-Ayaka-233/HoYoLabPP" title="前端网页源代码"></v-home-similar-project-item-link-item>
+        <v-home-similar-project-item-link-item platform="gitHub" url="https://github.com/Kamisato-Ayaka-233/HoYoLabPP.Backend" title="后端服务器源代码"></v-home-similar-project-item-link-item>
+      </ul>
     </section>
 
     <section class="main">
@@ -254,6 +262,20 @@ const rules: string[] = [
         font-family: "LXGW WenKai", sans-serif;
       }
     })
+  }
+
+  .links {
+    padding: 0.4em;
+    border: 2px solid darken(#dark()[sub], 4%);
+    border-radius: #border-radius()[large-x];
+    background-color: lighten(#dark()[secondary], 7%);
+
+    > ul {
+      list-style: none;
+      display: flex;
+      flex-direction: row;
+      flex-wrap: nowrap;
+    }
   }
 
   .main {

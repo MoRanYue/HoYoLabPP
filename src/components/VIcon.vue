@@ -54,7 +54,7 @@ onMounted(update)
 <template>
   <div class="icon-container">
     <span class="icon" ref="icon"></span>
-    <div v-show="props.content">
+    <div v-if="props.content">
       <slot></slot>
     </div>
   </div>
@@ -71,16 +71,16 @@ onMounted(update)
 }
 
 .icon-container {
-  display: flex;
+  display: inline-flex;
   flex-direction: row;
   justify-content: center;
   align-items: center;
   flex-wrap: nowrap;
 
-  > .icon {
-    height: fit-content;
-    width: fit-content;
+  > span {
+    transform: translateY(1.5px);
   }
+
   > div {
     display: inline-block;
     margin-left: #icon()[content-interval];
