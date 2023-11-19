@@ -145,6 +145,69 @@ const rules: string[] = [
               }
             }"></v-home-similar-project-item>
           </v-tab-item>
+
+          <v-tab-item>
+            <v-home-similar-project-item project="提瓦特小助手" id="teyvatHelper" :type="['weChatMini']" desc="《提瓦特小助手》是专注旅行者服务的微信小程序" 
+            :links="{
+              officalWebsite: 'https://www.yshelper.com/'
+            }" :supported-functions="{}"></v-home-similar-project-item>
+          </v-tab-item>
+
+          <v-tab-item>
+            <v-home-similar-project-item project="Paimon Moe" id="paimonMoe" :type="['web']" desc="带有祈愿分析与角色计算器等功能的小工具" 
+            :links="{
+              officalWebsite: 'https://paimon.moe/'
+            }" :supported-functions="{
+              achievement: {
+                analysis: true,
+                genshinImpact: true,
+                exportable: true,
+                importable: true,
+                management: true
+              },
+              calendar: {
+                drawingPool: true,
+                genshinImpact: true,
+                material: true,
+              },
+              drawingRecord: {
+                analysis: true,
+                genshinImpact: true
+              }
+            }"></v-home-similar-project-item>
+          </v-tab-item>
+
+          <v-tab-item>
+            <v-home-similar-project-item project="寻空" author="Scighost" id="xunKong" :type="['windows']" desc="寻空可以帮你统计和分析原神游戏中的各项数据，快速掌握账号的相关信息" 
+            :links="{
+              officalWebsite: 'https://xunkong.cc/',
+              gitHub: 'https://github.com/xunkong/xunkong',
+              appStore: 'https://www.microsoft.com/store/apps/9N2SVG0JMT12'
+            }" :supported-functions="{}"></v-home-similar-project-item>
+          </v-tab-item>
+
+          <v-tab-item>
+            <v-home-similar-project-item project="Yae Achievement" author="HolographicHat" id="yaeAchievement" :type="['windows']" desc="一个简单的原神成就管理工具" 
+            :links="{
+              gitHub: 'https://github.com/HolographicHat/YaeAchievement'
+            }" :supported-functions="{}"></v-home-similar-project-item>
+          </v-tab-item>
+
+          <v-tab-item>
+            <v-home-similar-project-item project="椰羊 Cocogoat" author="月海亭 YuehaiTeam" id="cocogoat" :type="['web']" desc="网页端原神工具箱" 
+            :links="{
+              gitHub: 'https://github.com/YuehaiTeam/cocogoat',
+              officalWebsite: 'https://cocogoat.work/'
+            }" :supported-functions="{}"></v-home-similar-project-item>
+          </v-tab-item>
+
+          <v-tab-item>
+            <v-home-similar-project-item project="Sangonomia" author="AuroraZiling" id="sangonomia" :type="['windows']" desc="原神祈愿记录工具" 
+            :links="{
+              gitHub: 'https://github.com/AuroraZiling/sangonomiya',
+              hostedWebsite: 'https://sangonomiya.coding.net/public-artifacts/sangonomiya/pre-release/packages'
+            }" :supported-functions="{}"></v-home-similar-project-item>
+          </v-tab-item>
         </v-tab>
       </v-card>
     </section>

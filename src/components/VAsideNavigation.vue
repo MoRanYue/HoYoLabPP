@@ -42,7 +42,7 @@ const { x, y, style, isDragging } = useDraggable(navigation, {
     </div>
 
     <div class="headers">
-      <router-link to="Home"><img :src="props.logo" :title="props.siteName"></router-link>
+      <!-- <router-link to="Home"><img :src="props.logo" :title="props.siteName"></router-link> -->
       <span>{{ props.siteName }}</span>
     </div>
 
@@ -69,7 +69,7 @@ const { x, y, style, isDragging } = useDraggable(navigation, {
   dragging-zone-top: 0.3em;
   dragging-zone-right: 0.3em;
   header-padding: 0.5em;
-  header-img-interval: 0.3em;
+  header-img-interval: 1em;
   header-img-size: 8rem;
   header-name-size: 2rem;
   navigation-margin-tb: 0.8em;

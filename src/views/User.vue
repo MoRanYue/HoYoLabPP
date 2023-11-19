@@ -638,7 +638,7 @@ function logout() {
   </div>
 
   <div class="not-found" v-else>
-    <span>正在加载中或用户不存在</span>
+    <span>正在加载中</span>
   </div>
 </template>
 
